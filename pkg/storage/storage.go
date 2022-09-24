@@ -33,12 +33,9 @@ func (s *storage) Set(key string, value string) error {
 	newN, outN := s.dll.unshift(key, value)
 	if outN != nil {
 		// in case dll poped out the last item
-		// s.Lock()
 		delete(s.store, outN.key)
-		// s.Unlock()
 	}
 
-	// s.Lock()
 	// add node to map
 	s.store[key] = newN
 	s.Unlock()
@@ -58,12 +55,9 @@ func (s *storage) Get(key string) (string, error) {
 	// move the Get node(so nd) to head of dll
 	s.Lock()
 	ndExist := s.dll.removeNode(nd)
-	// s.Unlock()
 	if ndExist != nil {
 		// re-unshift ndExist or nd(what ever they point to the same location)
-		// s.Lock()
 		s.dll.unshiftNode(ndExist)
-		// s.Unlock()
 	}
 	s.Unlock()
 
@@ -79,9 +73,7 @@ func (s *storage) Delete(key string) error {
 	if ok {
 		s.Lock()
 		_ = s.dll.removeNode(nd)
-		// s.Unlock()
 
-		// s.Lock()
 		delete(s.store, key)
 		s.Unlock()
 	}
