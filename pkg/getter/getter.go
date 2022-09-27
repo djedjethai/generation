@@ -9,10 +9,10 @@ type Getter interface {
 }
 
 type getter struct {
-	st storage.StorageRepo
+	st storage.ShardedMap
 }
 
-func NewGetter(s storage.StorageRepo) Getter {
+func NewGetter(s storage.ShardedMap) Getter {
 	return &getter{st: s}
 }
 

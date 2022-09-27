@@ -32,12 +32,12 @@ var dbLoggerActive = false
 func main() {
 
 	// storage(infra layer)
-	storagePtr := storage.NewStorage(2)
+	// the first arg is the number of shard, the second the number of item/shard
+	shardedMap := storage.NewShardedMap(6, 2)
 
-	// services(domain layer)
-	setSrv := setter.NewSetter(storagePtr)
-	getSrv := getter.NewGetter(storagePtr)
-	delSrv := deleter.NewDeleter(storagePtr)
+	setSrv := setter.NewSetter(shardedMap)
+	getSrv := getter.NewGetter(shardedMap)
+	delSrv := deleter.NewDeleter(shardedMap)
 
 	// in case the srv crash, when start back it will read the logger and recover its state
 	logger, err := initializeTransactionLog(setSrv, delSrv, fileLoggerActive)

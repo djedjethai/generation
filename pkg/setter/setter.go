@@ -9,10 +9,11 @@ type Setter interface {
 }
 
 type setter struct {
-	st storage.StorageRepo
+	// st storage.StorageRepo
+	st storage.ShardedMap
 }
 
-func NewSetter(s storage.StorageRepo) Setter {
+func NewSetter(s storage.ShardedMap) Setter {
 	return &setter{st: s}
 }
 

@@ -9,10 +9,10 @@ type Deleter interface {
 }
 
 type deleter struct {
-	st storage.StorageRepo
+	st storage.ShardedMap
 }
 
-func NewDeleter(s storage.StorageRepo) Deleter {
+func NewDeleter(s storage.ShardedMap) Deleter {
 	return &deleter{st: s}
 }
 
