@@ -2,6 +2,7 @@ package rest
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -58,7 +59,19 @@ func keyValueGetHandler(getSrv getter.Getter) func(w http.ResponseWriter, r *htt
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte(value))
+
+		var result string
+		switch value.(type) {
+		case string:
+			result = value.(string)
+		case int64:
+			result = fmt.Sprintf("%v", value.(int64))
+		case float32:
+			result = fmt.Sprintf("%v", value.(float32))
+		default:
+			result = "Invalid type"
+		}
+		w.Write([]byte(result))
 	}
 }
 

@@ -2,24 +2,36 @@ package storage
 
 import (
 	// "fmt"
+	"errors"
 	"sync"
 )
 
 type node struct {
-	prev *node
-	next *node
-	key  string
-	val  string
+	prev     *node
+	next     *node
+	key      string
+	val      string
+	valInt   int64
+	valFloat float32
 }
 
-func NewNode(key, val string) *node {
+func NewNode(key string, val interface{}) (*node, error) {
 
-	return &node{
+	nd := &node{
 		prev: nil,
 		next: nil,
-		key:  key,
-		val:  val,
 	}
+	switch val.(type) {
+	case string:
+		nd.val = val.(string)
+	case int64:
+		nd.valInt = val.(int64)
+	case float32:
+		nd.valFloat = val.(float32)
+	default:
+		return nil, errors.New("Invalid input type")
+	}
+	return nd, nil
 }
 
 type dll struct {
@@ -80,8 +92,11 @@ func (d *dll) shiftNode() *node {
 }
 
 // return: the first *node is the newNode, and the second one if not nil is the poped one
-func (d *dll) unshift(key, val string) (*node, *node) {
-	nn := NewNode(key, val)
+func (d *dll) unshift(key string, val interface{}) (*node, *node, error) {
+	nn, err := NewNode(key, val)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	if d.length == 0 {
 		d.head = nn
@@ -98,10 +113,10 @@ func (d *dll) unshift(key, val string) (*node, *node) {
 	}
 
 	if d.length > d.maxLgt {
-		return nn, d.popNode()
+		return nn, d.popNode(), nil
 	}
 
-	return nn, nil
+	return nn, nil, nil
 }
 
 // return first *node is the newNode second one, if not nil is the poped one

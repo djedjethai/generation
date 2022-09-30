@@ -10,8 +10,8 @@ import (
 var ErrorNoSuchKey = errors.New("no such key")
 
 type StorageRepo interface {
-	Set(string, string) error
-	Get(string) (string, error)
+	Set(string, interface{}) error
+	Get(string) (interface{}, error)
 	Delete(string) error
 }
 
@@ -50,12 +50,15 @@ func (m ShardedMap) getShard(key string) *Shard {
 	return m[index]
 }
 
-func (m ShardedMap) Set(key string, value string) error {
+func (m ShardedMap) Set(key string, value interface{}) error {
 	shard := m.getShard(key)
 	shard.Lock()
 	defer shard.Unlock()
 
-	newN, outN := shard.dll.unshift(key, value)
+	newN, outN, err := shard.dll.unshift(key, value)
+	if err != nil {
+		return err
+	}
 	if outN != nil {
 		delete(shard.m, outN.key)
 	}
@@ -65,7 +68,8 @@ func (m ShardedMap) Set(key string, value string) error {
 	return nil
 }
 
-func (m ShardedMap) Get(key string) (string, error) {
+// TODO get per type !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+func (m ShardedMap) Get(key string) (interface{}, error) {
 	shard := m.getShard(key)
 
 	shard.RLock()
