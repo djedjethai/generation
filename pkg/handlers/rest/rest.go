@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/getter"
@@ -22,6 +23,7 @@ func Handler(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter,
 	r.HandleFunc("/v1/{key}", keyValuePutHandler(setSrv, logger, dbLogger)).Methods("PUT")
 	r.HandleFunc("/v1/{key}", keyValueGetHandler(getSrv)).Methods("GET")
 	r.HandleFunc("/v1/{key}", keyValueDeleteHandler(delSrv, logger, dbLogger)).Methods("DELETE")
+	r.HandleFunc("/v1/util/keys", keyValueGetKeysHandler(getSrv)).Methods("GET")
 
 	return r
 }
@@ -102,6 +104,16 @@ func keyValuePutHandler(setSrv setter.Setter, logger logger.TransactionLogger, d
 		dbLogger.WritePut(key, string(value))
 
 		w.WriteHeader(http.StatusCreated)
+	}
+}
+
+func keyValueGetKeysHandler(getSrv getter.Getter) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		value := getSrv.GetKeys()
+		stringByte := strings.Join(value, ",")
+
+		w.Write([]byte(stringByte))
 	}
 }
 

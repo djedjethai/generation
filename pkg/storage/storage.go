@@ -68,7 +68,7 @@ func (m ShardedMap) Set(key string, value interface{}) error {
 	return nil
 }
 
-// TODO get per type !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// TODO get per type, check with gRPC if that works...
 func (m ShardedMap) Get(key string) (interface{}, error) {
 	shard := m.getShard(key)
 
@@ -87,7 +87,15 @@ func (m ShardedMap) Get(key string) (interface{}, error) {
 		shard.dll.unshiftNode(ndExist)
 	}
 
-	return nd.val, nil
+	if nd.val != "" {
+		return nd.val, nil
+	} else if nd.valInt != 0 {
+		return nd.valInt, nil
+	} else if nd.valFloat != 0 {
+		return nd.valFloat, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func (m ShardedMap) Delete(key string) error {

@@ -6,6 +6,7 @@ import (
 
 type Getter interface {
 	Get(string) (interface{}, error)
+	GetKeys() []string
 }
 
 type getter struct {
@@ -22,4 +23,11 @@ func (s *getter) Get(key string) (interface{}, error) {
 		return "", err
 	}
 	return value, nil
+}
+
+func (s *getter) GetKeys() []string {
+	var keys []string
+	keys = s.st.Keys()
+
+	return keys
 }
