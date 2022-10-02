@@ -84,7 +84,7 @@ func (m ShardedMap) Get(key string) (interface{}, error) {
 
 	ndExist := shard.dll.removeNode(nd)
 	if ndExist != nil {
-		shard.dll.unshiftNode(ndExist)
+		_, _ = shard.dll.unshiftNode(ndExist)
 	}
 
 	if nd.val != "" {

@@ -20,6 +20,7 @@ func NewNode(key string, val interface{}) (*node, error) {
 	nd := &node{
 		prev: nil,
 		next: nil,
+		key:  key,
 	}
 	switch val.(type) {
 	case string:
