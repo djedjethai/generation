@@ -40,6 +40,7 @@ func NewShardedMap(nShard, maxLgt int) ShardedMap {
 func (m ShardedMap) getShardIndex(key string) int {
 	checksum := sha1.Sum([]byte(key)) // Use Sum from "crypto/sha1"
 	hash := int(checksum[17])         // Pick an arbitrary byte as the hash
+	fmt.Println("see the hash: ", hash)
 	fmt.Println("see the index(modulo): ", hash%len(m))
 	return hash % len(m)
 }
