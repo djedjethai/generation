@@ -5,7 +5,8 @@ import (
 )
 
 type Getter interface {
-	Get(string) (string, error)
+	Get(string) (interface{}, error)
+	GetKeys() []string
 }
 
 type getter struct {
@@ -16,10 +17,17 @@ func NewGetter(s storage.ShardedMap) Getter {
 	return &getter{st: s}
 }
 
-func (s *getter) Get(key string) (string, error) {
+func (s *getter) Get(key string) (interface{}, error) {
 	value, err := s.st.Get(key)
 	if err != nil {
 		return "", err
 	}
 	return value, nil
+}
+
+func (s *getter) GetKeys() []string {
+	var keys []string
+	keys = s.st.Keys()
+
+	return keys
 }

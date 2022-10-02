@@ -33,7 +33,7 @@ func main() {
 
 	// storage(infra layer)
 	// the first arg is the number of shard, the second the number of item/shard
-	shardedMap := storage.NewShardedMap(6, 2)
+	shardedMap := storage.NewShardedMap(1, 2)
 
 	setSrv := setter.NewSetter(shardedMap)
 	getSrv := getter.NewGetter(shardedMap)

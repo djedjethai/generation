@@ -10,8 +10,8 @@ import (
 var ErrorNoSuchKey = errors.New("no such key")
 
 type StorageRepo interface {
-	Set(string, string) error
-	Get(string) (string, error)
+	Set(string, interface{}) error
+	Get(string) (interface{}, error)
 	Delete(string) error
 }
 
@@ -50,12 +50,15 @@ func (m ShardedMap) getShard(key string) *Shard {
 	return m[index]
 }
 
-func (m ShardedMap) Set(key string, value string) error {
+func (m ShardedMap) Set(key string, value interface{}) error {
 	shard := m.getShard(key)
 	shard.Lock()
 	defer shard.Unlock()
 
-	newN, outN := shard.dll.unshift(key, value)
+	newN, outN, err := shard.dll.unshift(key, value)
+	if err != nil {
+		return err
+	}
 	if outN != nil {
 		delete(shard.m, outN.key)
 	}
@@ -65,7 +68,8 @@ func (m ShardedMap) Set(key string, value string) error {
 	return nil
 }
 
-func (m ShardedMap) Get(key string) (string, error) {
+// TODO get per type, check with gRPC if that works...
+func (m ShardedMap) Get(key string) (interface{}, error) {
 	shard := m.getShard(key)
 
 	shard.RLock()
@@ -80,10 +84,18 @@ func (m ShardedMap) Get(key string) (string, error) {
 
 	ndExist := shard.dll.removeNode(nd)
 	if ndExist != nil {
-		shard.dll.unshiftNode(ndExist)
+		_, _ = shard.dll.unshiftNode(ndExist)
 	}
 
-	return nd.val, nil
+	if nd.val != "" {
+		return nd.val, nil
+	} else if nd.valInt != 0 {
+		return nd.valInt, nil
+	} else if nd.valFloat != 0 {
+		return nd.valFloat, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func (m ShardedMap) Delete(key string) error {
