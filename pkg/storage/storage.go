@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"crypto/sha1"
+	// "crypto/sha1"
 	"errors"
-	"fmt"
+	// "fmt"
 	"sync"
 )
 
@@ -38,10 +38,7 @@ func NewShardedMap(nShard, maxLgt int) ShardedMap {
 }
 
 func (m ShardedMap) getShardIndex(key string) int {
-	checksum := sha1.Sum([]byte(key)) // Use Sum from "crypto/sha1"
-	hash := int(checksum[17])         // Pick an arbitrary byte as the hash
-	fmt.Println("see the index(modulo): ", hash%len(m))
-	return hash % len(m)
+	return calculeIndex(key, len(m))
 }
 
 // retrieve the shard where the key is stored
