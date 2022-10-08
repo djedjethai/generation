@@ -1,7 +1,6 @@
 package storage
 
 import (
-	// "fmt"
 	"errors"
 	"sync"
 )
@@ -104,13 +103,10 @@ func (d *dll) unshift(key string, val interface{}) (*node, *node, error) {
 		d.tail = nn
 		d.length++
 	} else {
-		// to avoid repetitive query to populate the dll
-		if d.head.val != val {
-			d.head.prev = nn
-			nn.next = d.head
-			d.head = nn
-			d.length++
-		}
+		d.head.prev = nn
+		nn.next = d.head
+		d.head = nn
+		d.length++
 	}
 
 	if d.length > d.maxLgt {
@@ -159,3 +155,31 @@ func (d *dll) removeNode(nd *node) *node {
 
 	return nd
 }
+
+// useless for now but keep it for later in case...
+// func (d *dll) getNode(key string) *node {
+// 	ns := d.head
+// 	ne := d.tail
+// 	if ns.key == key {
+// 		return ns
+// 	}
+//
+// 	if ne.key == key {
+// 		return ne
+// 	}
+//
+// 	for i := 0; i < int(math.Ceil(float64(d.length)/2)); i++ {
+// 		// from start
+// 		ns = ns.next
+// 		if ns.key == key {
+// 			return ns
+// 		}
+//
+// 		// from end
+// 		ne = ne.prev
+// 		if ne.key == key {
+// 			return ne
+// 		}
+// 	}
+// 	return nil
+// }

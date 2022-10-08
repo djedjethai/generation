@@ -29,11 +29,19 @@ var port = ":8080"
 var fileLoggerActive = false
 var dbLoggerActive = false
 
+var shards = 2
+var itemsPerShard = 25
+
 func main() {
 
 	// storage(infra layer)
 	// the first arg is the number of shard, the second the number of item/shard
-	shardedMap := storage.NewShardedMap(3, 2)
+	var shardedMap storage.ShardedMap
+	if shards > 0 && itemsPerShard > 0 {
+		shardedMap = storage.NewShardedMap(shards, itemsPerShard)
+	} else {
+		log.Fatal("The key value store can not work without storage")
+	}
 
 	setSrv := setter.NewSetter(shardedMap)
 	getSrv := getter.NewGetter(shardedMap)

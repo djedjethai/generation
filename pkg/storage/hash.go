@@ -20,7 +20,5 @@ func calculeIndex(key string, arrLength int) int {
 		key = key[size:]
 	}
 
-	fmt.Println("the total: ", total)
-
 	return total
 }

@@ -10,7 +10,7 @@ var storeT = make(map[string]string)
 
 func TestMain(m *testing.M) {
 
-	storageT = NewStorage(storeT)
+	storageT = NewShardedMap(3, 10)
 
 	os.Exit(m.Run())
 }
