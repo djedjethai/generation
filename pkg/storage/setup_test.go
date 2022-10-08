@@ -5,12 +5,13 @@ import (
 	"testing"
 )
 
-var storageT StorageRepo
-var storeT = make(map[string]string)
+var shardedMap ShardedMap
+
+// var storeT = make(map[string]string)
 
 func TestMain(m *testing.M) {
 
-	storageT = NewShardedMap(3, 10)
+	shardedMap = NewShardedMap(3, 10)
 
 	os.Exit(m.Run())
 }
