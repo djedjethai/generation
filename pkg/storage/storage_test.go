@@ -55,6 +55,15 @@ func TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard(t *testing.T) 
 	sm.Set("key3", "val3")
 	sm.Set("key4", "val4")
 
+	// check the remained element into the dll
+	_, t1 := sm[0].m["key1"]
+	_, t2 := sm[0].m["key2"]
+	_, t3 := sm[0].m["key3"]
+	_, t4 := sm[0].m["key4"]
+	if t1 || t2 || !t3 || !t4 {
+		t.Error("err t3 or/and t4 in store TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard")
+	}
+
 	ks := sm.Keys()
 	if len(ks) != 2 || ks[0] != "key3" || ks[1] != "key4" {
 		t.Error("err in store TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard")
