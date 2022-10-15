@@ -21,70 +21,57 @@ type PostgresTransactionLogger struct {
 	events chan<- Event // Write-only channel for sending events
 	errors <-chan error // Read-only channel for receiving errors
 	db     *sql.DB      // The database access interface
-	active bool
 }
 
-func NewPostgresTransactionLogger(config cfg.PostgresDBParams, active bool) (TransactionLogger,
+func NewPostgresTransactionLogger(config cfg.PostgresDBParams) (TransactionLogger,
 	error) {
 
-	if active {
-		dsn := fmt.Sprintf("host=%s dbname=%s user=%s password=%s",
-			config.Host, config.DbName, config.User, config.Password)
+	// if active {
+	dsn := fmt.Sprintf("host=%s dbname=%s user=%s password=%s",
+		config.Host, config.DbName, config.User, config.Password)
 
-		db, err := sql.Open("pgx", dsn)
-		if err != nil {
-			panic(err)
-		}
-		db.SetMaxOpenConns(maxOpenDbConn)
-		db.SetMaxIdleConns(maxIdleDbConn)
-		db.SetConnMaxLifetime(maxDbLifetime)
-
-		err = db.Ping()
-		if err != nil {
-			log.Println("Error! ", err)
-		} else {
-			log.Println("**** Pinged postgres successfuly ****")
-		}
-
-		logger := &PostgresTransactionLogger{
-			db:     db,
-			active: active,
-		}
-		exists, err := logger.verifyTableExists()
-		if err != nil {
-			return nil, fmt.Errorf("failed to verify table exists: %w", err)
-		}
-		if !exists {
-			if err = logger.createTable(); err != nil {
-				return nil, fmt.Errorf("failed to create table: %w", err)
-			}
-		}
-		return logger, nil
-	} else {
-
-		logger := &PostgresTransactionLogger{active: active}
-		return logger, nil
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		panic(err)
 	}
+	db.SetMaxOpenConns(maxOpenDbConn)
+	db.SetMaxIdleConns(maxIdleDbConn)
+	db.SetConnMaxLifetime(maxDbLifetime)
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatalln("Error, ping the db failed! ", err)
+	} else {
+		log.Println("**** Pinged postgres successfuly ****")
+	}
+
+	logger := &PostgresTransactionLogger{
+		db: db,
+	}
+	exists, err := logger.verifyTableExists()
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify table exists: %w", err)
+	}
+	if !exists {
+		if err = logger.createTable(); err != nil {
+			return nil, fmt.Errorf("failed to create table: %w", err)
+		}
+	}
+	return logger, nil
 }
 
 func (l *PostgresTransactionLogger) CloseFileLogger() {
-	if l.active {
-		if err := l.db.Close(); err != nil {
-			log.Println("error closing the fileLogger")
-		}
+	if err := l.db.Close(); err != nil {
+		log.Println("error closing the fileLogger")
 	}
 }
 
 func (l *PostgresTransactionLogger) WritePut(key, value string) {
-	if l.active {
-		l.events <- Event{EventType: EventPut, Key: key, Value: value}
-	}
+	l.events <- Event{EventType: EventPut, Key: key, Value: value}
 }
 
 func (l *PostgresTransactionLogger) WriteDelete(key string) {
-	if l.active {
-		l.events <- Event{EventType: EventDelete, Key: key}
-	}
+	l.events <- Event{EventType: EventDelete, Key: key}
 }
 
 func (l *PostgresTransactionLogger) Run() {

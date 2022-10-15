@@ -15,54 +15,40 @@ type FileTransactionLogger struct {
 	lastSequence uint64       // The last used event sequence number
 	file         *os.File     // The location of the transaction log
 	encryptK     string
-	active       bool
 }
 
-func NewFileTransactionLogger(filename, encryptK string, active bool) (TransactionLogger, error) {
-	if active {
-		file, err := os.OpenFile(filename, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755)
-		if err != nil {
-			return nil, fmt.Errorf("cannot open transaction log file: %w", err)
-		}
-		return &FileTransactionLogger{
-			file:     file,
-			encryptK: encryptK,
-			active:   active,
-		}, nil
-	} else {
-		return &FileTransactionLogger{
-			active: active,
-		}, nil
+func NewFileTransactionLogger(filename, encryptK string) (TransactionLogger, error) {
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755)
+	if err != nil {
+		return nil, fmt.Errorf("cannot open transaction log file: %w", err)
 	}
+	return &FileTransactionLogger{
+		file:     file,
+		encryptK: encryptK,
+	}, nil
 }
 
 func (l *FileTransactionLogger) WritePut(key, value string) {
-	if l.active {
-		key, err := internal.Encrypt(key, l.encryptK)
-		value, err = internal.Encrypt(value, l.encryptK)
-		if err != nil {
-			log.Println("Error encrypting the key, value wheb WritePut")
-		}
-		l.events <- Event{EventType: EventPut, Key: key, Value: value}
+	key, err := internal.Encrypt(key, l.encryptK)
+	value, err = internal.Encrypt(value, l.encryptK)
+	if err != nil {
+		log.Println("Error encrypting the key, value wheb WritePut")
 	}
+	l.events <- Event{EventType: EventPut, Key: key, Value: value}
 }
 
 func (l *FileTransactionLogger) WriteDelete(key string) {
-	if l.active {
-		key, err := internal.Encrypt(key, l.encryptK)
-		value, err := internal.Encrypt("", l.encryptK)
-		if err != nil {
-			log.Println("Error encrypting the key when WriteDelete")
-		}
-		l.events <- Event{EventType: EventDelete, Key: key, Value: value}
+	key, err := internal.Encrypt(key, l.encryptK)
+	value, err := internal.Encrypt("", l.encryptK)
+	if err != nil {
+		log.Println("Error encrypting the key when WriteDelete")
 	}
+	l.events <- Event{EventType: EventDelete, Key: key, Value: value}
 }
 
 func (l *FileTransactionLogger) CloseFileLogger() {
-	if l.active {
-		if err := l.file.Close(); err != nil {
-			log.Println("error closing the fileLogger")
-		}
+	if err := l.file.Close(); err != nil {
+		log.Println("error closing the fileLogger")
 	}
 }
 

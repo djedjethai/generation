@@ -16,19 +16,19 @@ import (
 
 var ErrorNoSuchKey = errors.New("no such key")
 
-func Handler(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, logger logger.TransactionLogger, dbLogger logger.TransactionLogger) http.Handler {
+func Handler(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *logger.LoggerFacade) http.Handler {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", helloMuxHandler())
-	r.HandleFunc("/v1/{key}", keyValuePutHandler(setSrv, logger, dbLogger)).Methods("PUT")
+	r.HandleFunc("/v1/{key}", keyValuePutHandler(setSrv, loggerFacade)).Methods("PUT")
 	r.HandleFunc("/v1/{key}", keyValueGetHandler(getSrv)).Methods("GET")
-	r.HandleFunc("/v1/{key}", keyValueDeleteHandler(delSrv, logger, dbLogger)).Methods("DELETE")
+	r.HandleFunc("/v1/{key}", keyValueDeleteHandler(delSrv, loggerFacade)).Methods("DELETE")
 	r.HandleFunc("/v1/util/keys", keyValueGetKeysHandler(getSrv)).Methods("GET")
 
 	return r
 }
 
-func keyValueDeleteHandler(delSrv deleter.Deleter, logger logger.TransactionLogger, dbLogger logger.TransactionLogger) func(w http.ResponseWriter, r *http.Request) {
+func keyValueDeleteHandler(delSrv deleter.Deleter, loggerFacade *logger.LoggerFacade) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		key := vars["key"]
@@ -41,8 +41,7 @@ func keyValueDeleteHandler(delSrv deleter.Deleter, logger logger.TransactionLogg
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		logger.WriteDelete(key)
-		dbLogger.WriteDelete(key)
+		loggerFacade.WriteDelete(key)
 
 		w.WriteHeader(http.StatusOK)
 	}
@@ -77,7 +76,7 @@ func keyValueGetHandler(getSrv getter.Getter) func(w http.ResponseWriter, r *htt
 	}
 }
 
-func keyValuePutHandler(setSrv setter.Setter, logger logger.TransactionLogger, dbLogger logger.TransactionLogger) func(w http.ResponseWriter, r *http.Request) {
+func keyValuePutHandler(setSrv setter.Setter, loggerFacade *logger.LoggerFacade) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		key := vars["key"]
@@ -100,8 +99,7 @@ func keyValuePutHandler(setSrv setter.Setter, logger logger.TransactionLogger, d
 				http.StatusInternalServerError)
 			return
 		}
-		logger.WritePut(key, string(value))
-		dbLogger.WritePut(key, string(value))
+		loggerFacade.WritePut(key, string(value))
 
 		w.WriteHeader(http.StatusCreated)
 	}

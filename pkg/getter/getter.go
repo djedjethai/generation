@@ -4,6 +4,8 @@ import (
 	"github.com/djedjethai/generation0/pkg/storage"
 )
 
+// run: go generate ./...
+//
 //go:generate mockgen -destination=../mocks/getter/mockGetter.go -package=getter github.com/djedjethai/generation0/pkg/getter Getter
 type Getter interface {
 	Get(string) (interface{}, error)
