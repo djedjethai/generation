@@ -4,6 +4,7 @@ import (
 	"github.com/djedjethai/generation0/pkg/storage"
 )
 
+//go:generate mockgen -destination=../mocks/deleter/mockDeleter.go -package=deleter github.com/djedjethai/generation0/pkg/deleter Deleter
 type Deleter interface {
 	Delete(string) error
 }

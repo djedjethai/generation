@@ -4,6 +4,7 @@ import (
 	"github.com/djedjethai/generation0/pkg/storage"
 )
 
+//go:generate mockgen -destination=../mocks/setter/mockSetter.go -package=setter github.com/djedjethai/generation0/pkg/setter Setter
 type Setter interface {
 	Set(string, []byte) error
 }

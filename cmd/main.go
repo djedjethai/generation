@@ -20,8 +20,8 @@ var encryptK = "PX9PHFrdn79ljrjLDZHlV1t+BdxHRFf5"
 var port = ":8080"
 
 // default value
-var fileLoggerActive = true
-var dbLoggerActive = true
+var fileLoggerActive = false
+var dbLoggerActive = false
 
 var shards = 2
 var itemsPerShard = 25
