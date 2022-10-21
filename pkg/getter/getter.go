@@ -13,7 +13,7 @@ type Getter interface {
 }
 
 type getter struct {
-	st storage.ShardedMap
+	st storage.StorageRepo
 }
 
 func NewGetter(s storage.ShardedMap) Getter {

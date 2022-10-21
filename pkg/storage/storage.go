@@ -11,6 +11,7 @@ var ErrorNoSuchKey = errors.New("no such key")
 type StorageRepo interface {
 	Set(string, interface{}) error
 	Get(string) (interface{}, error)
+	Keys() []string
 	Delete(string) error
 }
 
