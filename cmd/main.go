@@ -1,21 +1,21 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	"log"
 	"net"
 
-	// "net/http"
+	"net/http"
 
-	// "github.com/djedjethai/generation0/pkg/config"
+	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/getter"
 	// "github.com/djedjethai/generation0/pkg/handlers/grcp"
 
-	// "github.com/djedjethai/generation0/pkg/handlers/rest"
-	// lgr "github.com/djedjethai/generation0/pkg/logger"
 	"github.com/djedjethai/generation0/pkg/handlers/grpc"
 	pb "github.com/djedjethai/generation0/pkg/handlers/grpc/proto/keyvalue"
+	"github.com/djedjethai/generation0/pkg/handlers/rest"
+	lgr "github.com/djedjethai/generation0/pkg/logger"
 	"github.com/djedjethai/generation0/pkg/setter"
 	storage "github.com/djedjethai/generation0/pkg/storage"
 	gglGrpc "google.golang.org/grpc"
@@ -27,11 +27,15 @@ var encryptK = "PX9PHFrdn79ljrjLDZHlV1t+BdxHRFf5"
 var port = ":8080"
 
 // default value
-var fileLoggerActive = false
+var fileLoggerActive = true
 var dbLoggerActive = false
 
 var shards = 2
 var itemsPerShard = 25
+
+var protocol = "http"
+
+// var protocol = "grpc"
 
 func main() {
 
@@ -48,11 +52,44 @@ func main() {
 	getSrv := getter.NewGetter(shardedMap)
 	delSrv := deleter.NewDeleter(shardedMap)
 
+	// set logger
+	var postgresConfig = config.PostgresDBParams{}
+	if dbLoggerActive {
+		if dbLoggerActive {
+			postgresConfig.Host = "localhost"
+			postgresConfig.DbName = "transactions"
+			postgresConfig.User = "postgres"
+			postgresConfig.Password = "password"
+		}
+	}
+
+	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, fileLoggerActive, dbLoggerActive, postgresConfig, encryptK)
+	defer loggerFacade.CloseFileLogger()
+
+	// in case the srv crash, when start back it will read the logger and recover its state
+	// logger, err := initializeTransactionLog(setSrv, delSrv, fileLoggerActive)
+	if err != nil {
+		log.Panic("Logger(s) initialization failed: ", err)
+	}
+
+	switch protocol {
+	case "http":
+		runHTTP(setSrv, getSrv, delSrv, loggerFacade)
+	case "grpc":
+		runGRPC(setSrv, getSrv, delSrv, loggerFacade)
+	default:
+		log.Fatalln("Invalid protocol...")
+	}
+
+}
+
+func runGRPC(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *lgr.LoggerFacade) {
 	s := gglGrpc.NewServer()
 	pb.RegisterKeyValueServer(s, &grpc.Server{
-		SetSrv: setSrv,
-		GetSrv: getSrv,
-		DelSrv: delSrv,
+		SetSrv:       setSrv,
+		GetSrv:       getSrv,
+		DelSrv:       delSrv,
+		LoggerFacade: loggerFacade,
 	})
 
 	lis, err := net.Listen("tcp", ":50051")
@@ -64,29 +101,12 @@ func main() {
 		log.Fatalf("Failed to serve: %v", err)
 	}
 
-	// TODO rest implementation
-	// var postgresConfig = config.PostgresDBParams{}
-	// if dbLoggerActive {
-	// 	if dbLoggerActive {
-	// 		postgresConfig.Host = "localhost"
-	// 		postgresConfig.DbName = "transactions"
-	// 		postgresConfig.User = "postgres"
-	// 		postgresConfig.Password = "password"
-	// 	}
-	// }
+}
 
-	// loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, fileLoggerActive, dbLoggerActive, postgresConfig, encryptK)
-	// defer loggerFacade.CloseFileLogger()
+func runHTTP(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *lgr.LoggerFacade) {
+	// handler(application layer)
+	router := rest.Handler(setSrv, getSrv, delSrv, loggerFacade)
 
-	// // in case the srv crash, when start back it will read the logger and recover its state
-	// // logger, err := initializeTransactionLog(setSrv, delSrv, fileLoggerActive)
-	// if err != nil {
-	// 	log.Panic("Logger(s) initialization failed: ", err)
-	// }
-
-	// // handler(application layer)
-	// router := rest.Handler(setSrv, getSrv, delSrv, loggerFacade)
-
-	// fmt.Printf("***** Service listening on port %s *****", port)
-	// log.Fatal(http.ListenAndServe(port, router))
+	fmt.Printf("***** Service listening on port %s *****", port)
+	log.Fatal(http.ListenAndServe(port, router))
 }
