@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+option go_package = "github.com/djedjethai/generation0/pkg/handlers/grpc/proto/keyvalue";
+
+service KeyValue {
+	rpc Get(GetRequest) returns (GetResponse);
+	rpc Put(PutRequest) returns (PutResponse);
+	rpc Delete(DeleteRequest) returns (DeleteResponse);
+	rpc GetKeys(GetKeysRequest) returns (GetKeysResponse);
+}
+
+message GetRequest {
+	string key = 1;
+}
+
+message GetResponse{
+	string value = 1;
+}
+
+message GetKeysRequest{}
+
+message GetKeysResponse{
+	repeated string keys =1;
+}
+
+message PutRequest{
+	string key = 1;
+	string value = 2;
+}
+
+message PutResponse{}
+
+message DeleteRequest{
+	string key = 1;
+}
+
+message DeleteResponse{}
+
+// message PutError{
+// 	Error put_error = 1;
+// }
+
+// message GetError{
+// 	Error get_error = 1;
+// }
+
+// message DeleteError{
+// 	Error delete_error = 1;
+// }
+
+// message Error{
+// 	int32 code = 1;
+// 	string description = 2;
+// }
+
+
+
+
