@@ -1,0 +1,8 @@
+encryptK: PX9PHFrdn79ljrjLDZHlV1t+BdxHRFf5
+port: :8080
+portGrpc: :50051
+fileLoggerActive: true
+dbLoggerActive: false
+shards: 3
+itemsPerShard: 20
+protocol: http

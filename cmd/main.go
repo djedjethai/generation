@@ -2,14 +2,17 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net"
-
-	"net/http"
-
 	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/getter"
+	"gopkg.in/yaml.v3"
+	"io/ioutil"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"path/filepath"
+
 	// "github.com/djedjethai/generation0/pkg/handlers/grcp"
 
 	"github.com/djedjethai/generation0/pkg/handlers/grpc"
@@ -21,29 +24,18 @@ import (
 	gglGrpc "google.golang.org/grpc"
 )
 
-// var store = make(map[string]*storage.Node)
-var encryptK = "PX9PHFrdn79ljrjLDZHlV1t+BdxHRFf5"
-
-var port = ":8080"
-
-// default value
-var fileLoggerActive = true
-var dbLoggerActive = false
-
-var shards = 2
-var itemsPerShard = 25
-
-var protocol = "http"
-
-// var protocol = "grpc"
-
 func main() {
+
+	conf, err := getConf()
+	if err != nil {
+		log.Fatal("Err reading the config file: ", err)
+	}
 
 	// storage(infra layer)
 	// the first arg is the number of shard, the second the number of item/shard
 	var shardedMap storage.ShardedMap
-	if shards > 0 && itemsPerShard > 0 {
-		shardedMap = storage.NewShardedMap(shards, itemsPerShard)
+	if conf.Shards > 0 && conf.ItemsPerShard > 0 {
+		shardedMap = storage.NewShardedMap(conf.Shards, conf.ItemsPerShard)
 	} else {
 		log.Fatal("The key value store can not work without storage")
 	}
@@ -54,8 +46,8 @@ func main() {
 
 	// set logger
 	var postgresConfig = config.PostgresDBParams{}
-	if dbLoggerActive {
-		if dbLoggerActive {
+	if conf.DBLoggerActive {
+		if conf.DBLoggerActive {
 			postgresConfig.Host = "localhost"
 			postgresConfig.DbName = "transactions"
 			postgresConfig.User = "postgres"
@@ -63,7 +55,7 @@ func main() {
 		}
 	}
 
-	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, fileLoggerActive, dbLoggerActive, postgresConfig, encryptK)
+	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, conf.FileLoggerActive, conf.DBLoggerActive, postgresConfig, conf.EncryptKEY)
 	defer loggerFacade.CloseFileLogger()
 
 	// in case the srv crash, when start back it will read the logger and recover its state
@@ -72,18 +64,39 @@ func main() {
 		log.Panic("Logger(s) initialization failed: ", err)
 	}
 
-	switch protocol {
+	switch conf.Protocol {
 	case "http":
-		runHTTP(setSrv, getSrv, delSrv, loggerFacade)
+		runHTTP(setSrv, getSrv, delSrv, loggerFacade, conf.Port)
 	case "grpc":
-		runGRPC(setSrv, getSrv, delSrv, loggerFacade)
+		runGRPC(setSrv, getSrv, delSrv, loggerFacade, conf.PortGRPC)
 	default:
 		log.Fatalln("Invalid protocol...")
 	}
 
 }
 
-func runGRPC(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *lgr.LoggerFacade) {
+func getConf() (*config.Config, error) {
+
+	path, _ := os.Getwd()
+
+	configPath := filepath.Join(path, "../config.yaml")
+
+	yamlFile, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	c := &config.Config{}
+
+	err = yaml.Unmarshal(yamlFile, c)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+func runGRPC(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *lgr.LoggerFacade, port string) {
 	s := gglGrpc.NewServer()
 	pb.RegisterKeyValueServer(s, &grpc.Server{
 		SetSrv:       setSrv,
@@ -92,7 +105,8 @@ func runGRPC(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter,
 		LoggerFacade: loggerFacade,
 	})
 
-	lis, err := net.Listen("tcp", ":50051")
+	// lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
@@ -103,7 +117,7 @@ func runGRPC(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter,
 
 }
 
-func runHTTP(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *lgr.LoggerFacade) {
+func runHTTP(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *lgr.LoggerFacade, port string) {
 	// handler(application layer)
 	router := rest.Handler(setSrv, getSrv, delSrv, loggerFacade)
 
