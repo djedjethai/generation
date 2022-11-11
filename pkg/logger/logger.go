@@ -1,10 +1,12 @@
 package logger
 
 import (
+	"log"
+
 	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/setter"
-	"log"
+	"golang.org/x/net/context"
 )
 
 type EventType byte
@@ -143,6 +145,9 @@ func (tlf *TransactionLoggerFactory) Start() (TransactionLogger, TransactionLogg
 }
 
 func (tlf *TransactionLoggerFactory) runner(logger TransactionLogger) error {
+	// TODO here add ctx
+	ctx := context.Background()
+
 	var err error
 	events, errors := logger.ReadEvents()
 	e, ok := Event{}, true
@@ -155,7 +160,7 @@ func (tlf *TransactionLoggerFactory) runner(logger TransactionLogger) error {
 			case EventDelete:
 				err = tlf.delSrv.Delete(e.Key)
 			case EventPut:
-				err = tlf.setSrv.Set(e.Key, []byte(e.Value))
+				err = tlf.setSrv.Set(ctx, e.Key, []byte(e.Value))
 			}
 
 		}

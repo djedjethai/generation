@@ -22,7 +22,9 @@ type Server struct {
 }
 
 func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
-	err := s.SetSrv.Set(r.Key, []byte(r.Value))
+	// TODO
+
+	err := s.SetSrv.Set(ctx, r.Key, []byte(r.Value))
 	if err == nil {
 		s.LoggerFacade.WritePut(string(r.Key), string(r.Value))
 	}

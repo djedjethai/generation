@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"io"
 	"net/http"
 
@@ -17,6 +18,9 @@ func keyValuePutHandler(setSrv setter.Setter, loggerFacade *logger.LoggerFacade)
 		value, err := io.ReadAll(r.Body)
 		defer r.Body.Close()
 
+		// create a context
+		ctx := context.Background()
+
 		if err != nil {
 			http.Error(w,
 				err.Error(),
@@ -24,7 +28,7 @@ func keyValuePutHandler(setSrv setter.Setter, loggerFacade *logger.LoggerFacade)
 			return
 		}
 
-		err = setSrv.Set(key, value)
+		err = setSrv.Set(ctx, key, value)
 
 		if err != nil {
 			http.Error(w,
