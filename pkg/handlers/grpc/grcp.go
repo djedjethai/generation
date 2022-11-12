@@ -35,19 +35,19 @@ func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, er
 func (s *Server) Get(ctx context.Context, r *pb.GetRequest) (*pb.GetResponse, error) {
 	log.Printf("Received get key=%v", r.Key)
 
-	value, err := s.GetSrv.Get(r.Key)
+	value, err := s.GetSrv.Get(ctx, r.Key)
 
 	return &pb.GetResponse{Value: value.(string)}, err
 }
 
 func (s *Server) GetKeys(ctx context.Context, r *pb.GetKeysRequest) (*pb.GetKeysResponse, error) {
-	keys := s.GetSrv.GetKeys()
+	keys := s.GetSrv.GetKeys(ctx)
 
 	return &pb.GetKeysResponse{Keys: keys}, nil
 }
 
 func (s *Server) Delete(ctx context.Context, r *pb.DeleteRequest) (*pb.DeleteResponse, error) {
-	err := s.DelSrv.Delete(r.Key)
+	err := s.DelSrv.Delete(ctx, r.Key)
 	if err == nil {
 		s.LoggerFacade.WriteDelete(r.Key)
 	}

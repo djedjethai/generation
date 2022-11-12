@@ -32,7 +32,8 @@ import (
 )
 
 var labels = []label.KeyValue{
-	label.Key("application").String(serviceName),
+	label.Key("application").String("myapp"),
+	label.Key("service").String(serviceName),
 	// label.Key("container_id").String(os.Getenv("HOSTNAME")),
 	label.Key("container_id").String("1234"),
 }
@@ -95,8 +96,8 @@ func main() {
 	}
 
 	setSrv := setter.NewSetter(shardedMap, labels, &requests)
-	getSrv := getter.NewGetter(shardedMap)
-	delSrv := deleter.NewDeleter(shardedMap)
+	getSrv := getter.NewGetter(shardedMap, &requests)
+	delSrv := deleter.NewDeleter(shardedMap, labels, &requests)
 
 	// set logger
 	var postgresConfig = config.PostgresDBParams{}

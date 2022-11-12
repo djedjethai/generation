@@ -19,10 +19,12 @@ type setter struct {
 	// st storage.ShardedMap
 }
 
-func NewSetter(s storage.ShardedMap, label []label.KeyValue, requests *metric.Int64Counter) Setter {
+func NewSetter(s storage.ShardedMap, labels []label.KeyValue, requests *metric.Int64Counter) Setter {
+	lb := label.Key("setter").String("set")
+	labels = append(labels, lb)
 	return &setter{
 		st:  s,
-		lbl: label,
+		lbl: labels,
 		req: requests,
 	}
 }

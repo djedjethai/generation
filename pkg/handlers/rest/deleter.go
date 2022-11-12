@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -16,7 +17,10 @@ func keyValueDeleteHandler(delSrv deleter.Deleter, loggerFacade *logger.LoggerFa
 		vars := mux.Vars(r)
 		key := vars["key"]
 
-		err := delSrv.Delete(key)
+		// create a context
+		ctx := context.Background()
+
+		err := delSrv.Delete(ctx, key)
 		if errors.Is(err, ErrorNoSuchKey) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		}

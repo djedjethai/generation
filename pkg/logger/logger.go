@@ -158,7 +158,7 @@ func (tlf *TransactionLoggerFactory) runner(logger TransactionLogger) error {
 		case e, ok = <-events:
 			switch e.EventType {
 			case EventDelete:
-				err = tlf.delSrv.Delete(e.Key)
+				err = tlf.delSrv.Delete(ctx, e.Key)
 			case EventPut:
 				err = tlf.setSrv.Set(ctx, e.Key, []byte(e.Value))
 			}

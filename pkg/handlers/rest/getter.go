@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,7 +18,9 @@ func keyValueGetHandler(getSrv getter.Getter) func(w http.ResponseWriter, r *htt
 		vars := mux.Vars(r)
 		key := vars["key"]
 
-		value, err := getSrv.Get(key)
+		ctx := context.Background()
+
+		value, err := getSrv.Get(ctx, key)
 		if errors.Is(err, ErrorNoSuchKey) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		}
@@ -44,7 +47,9 @@ func keyValueGetHandler(getSrv getter.Getter) func(w http.ResponseWriter, r *htt
 func keyValueGetKeysHandler(getSrv getter.Getter) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		value := getSrv.GetKeys()
+		ctx := context.Background()
+
+		value := getSrv.GetKeys(ctx)
 		stringByte := strings.Join(value, ",")
 
 		w.Write([]byte(stringByte))
