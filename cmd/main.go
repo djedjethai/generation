@@ -14,7 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
+	// "time"
 
 	// "github.com/djedjethai/generation0/pkg/handlers/grcp"
 
@@ -33,8 +33,10 @@ import (
 
 var labels = []label.KeyValue{
 	label.Key("application").String(serviceName),
-	label.Key("container_id").String(os.Getenv("HOSTNAME")),
+	// label.Key("container_id").String(os.Getenv("HOSTNAME")),
+	label.Key("container_id").String("1234"),
 }
+
 var requests metric.Int64Counter
 var serviceName = "golru"
 
@@ -54,29 +56,25 @@ func main() {
 	// 	log.Fatal("Err reading the config file: ", err)
 	// }
 
-	log.Println("debug1")
 	// ================ prometheus config =================
+	// see prometheus at 127.0.0.1:9090
 	prometheusExporter, err := prometheus.NewExportPipeline(prometheus.Config{})
 	if err != nil {
 		fmt.Println(err)
 	}
-	log.Println("debug2")
 
 	// Get the meter provider from the exporter.
 	mp := prometheusExporter.MeterProvider()
 
-	log.Println("debug3")
 	// Set it as the global meter provider.
 	otel.SetMeterProvider(mp)
 
-	log.Println("debug4")
 	// // Register the exporter as the handler for the "/metrics" pattern.
 	// http.Handle("/metrics", prometheusExporter)
 	// // Start the HTTP server listening on port 3000.
 	// log.Fatal(http.ListenAndServe(":3000", nil))
 	go runPrometheusEndPoint(prometheusExporter)
 
-	log.Println("debug5")
 	// meter := otel.GetMeterProvider().Meter("golru")
 
 	err = buildRequestsCounter()
@@ -84,12 +82,8 @@ func main() {
 		log.Println("Error from build request counter: ", err)
 	}
 
-	log.Println("debug6")
+	buildRuntimeObservers()
 
-	ctx := context.Background()
-	go updateMetrics(ctx)
-
-	log.Println("debug7")
 	// =========================================
 	// storage(infra layer)
 	// the first arg is the number of shard, the second the number of item/shard
@@ -153,48 +147,26 @@ func buildRequestsCounter() error {
 	return err
 }
 
-func updateMetrics(ctx context.Context) {
-	// Retrieve the meter from the meter provider.
+// the NewInt64UpDownSumObserver accepts the name of the metric as a
+// string, something called a Int64ObserverFunc, and zero or more instrument
+// options (such as the metric description)
+func buildRuntimeObservers() {
 	meter := otel.GetMeterProvider().Meter(serviceName)
-	// Create the instruments that we'll use to report memory
-	// and goroutine values. Error values ignored for brevity.
-	mem, _ := meter.NewInt64UpDownCounter("memory_usage_bytes",
+	m := runtime.MemStats{}
+	meter.NewInt64UpDownSumObserver("memory_usage_bytes",
+		func(_ context.Context, result metric.Int64ObserverResult) {
+			runtime.ReadMemStats(&m)
+			result.Observe(int64(m.Sys), labels...)
+		},
 		metric.WithDescription("Amount of memory used."),
 	)
-	goroutines, _ := meter.NewInt64UpDownCounter("num_goroutines",
+	meter.NewInt64UpDownSumObserver("num_goroutines",
+		func(_ context.Context, result metric.Int64ObserverResult) {
+			result.Observe(int64(runtime.NumGoroutine()), labels...)
+		},
 		metric.WithDescription("Number of running goroutines."),
 	)
-	var m runtime.MemStats
-	for {
-		runtime.ReadMemStats(&m)
-		// Report the values to the instruments, and receive
-		// metric.Measurement values in return.
-		mMem := mem.Measurement(int64(m.Sys))
-		mGoroutines := goroutines.Measurement(int64(runtime.NumGoroutine()))
-		// Provide the measurements (and teh context and
-		// labels) to the meter.
-		meter.RecordBatch(ctx, labels, mMem, mGoroutines)
-		time.Sleep(5 * time.Second)
-	}
 }
-
-// func buildRuntimeObservers() {
-// 	meter := otel.GetMeterProvider().Meter(serviceName)
-// 	m := runtime.MemStats{}
-// 	meter.NewInt64UpDownSumObserver("memory_usage_bytes",
-// 		func(_ context.Context, result metric.Int64ObserverResult) {
-// 			runtime.ReadMemStats(&m)
-// 			result.Observe(int64(m.Sys), labels...)
-// 		},
-// 		metric.WithDescription("Amount of memory used."),
-// 	)
-// 	meter.NewInt64UpDownSumObserver("num_goroutines",
-// 		func(_ context.Context, result metric.Int64ObserverResult) {
-// 			result.Observe(int64(runtime.NumGoroutine()), labels...)
-// 		},
-// 		metric.WithDescription("Number of running goroutines."),
-// 	)
-// }
 
 func getConf() (*config.Config, error) {
 
