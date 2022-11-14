@@ -26,8 +26,11 @@ import (
 	storage "github.com/djedjethai/generation0/pkg/storage"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
+	"go.opentelemetry.io/otel/exporters/stdout"
+	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	gglGrpc "google.golang.org/grpc"
 )
 
@@ -40,6 +43,8 @@ var labels = []label.KeyValue{
 
 var requests metric.Int64Counter
 var serviceName = "golru"
+
+var jaegerEndpoint = "http://jaeger:14268/api/traces"
 
 var encryptK = "PX9PHFrdn79ljrjLDZHlV1t+BdxHRFf5"
 var port = ":8080"
@@ -56,6 +61,35 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal("Err reading the config file: ", err)
 	// }
+
+	// ================ jaeger config ====================
+	// http://localhost:16686/search
+	stdExporter, err := stdout.NewExporter(
+		stdout.WithPrettyPrint(),
+	)
+
+	jaegerExporter, err := jaeger.NewRawExporter(
+		jaeger.WithCollectorEndpoint(jaegerEndpoint),
+		jaeger.WithProcess(jaeger.Process{
+			ServiceName: serviceName,
+		}),
+	)
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithSyncer(stdExporter),
+		sdktrace.WithSyncer(jaegerExporter),
+		// sdktrace.WithResource(resource.NewWithAttributes(
+		// 	semconv.SchemaURL,
+		// 	semconv.ServiceNameKey.String(serviceName))),
+	)
+
+	otel.SetTracerProvider(tp)
+
+	// Setting the global tracer provider makes it discoverable via the otel.GetTracerPro
+	// vider function. This allows libraries and other dependencies that use the OpenTele‐
+	// metry API to more easily discover the SDK and emit telemetry data:
+	// gtp := otel.GetTracerProvider(tp)
+	tr := otel.GetTracerProvider().Tracer("service1")
 
 	// ================ prometheus config =================
 	// see prometheus at 127.0.0.1:9090
@@ -95,9 +129,9 @@ func main() {
 		log.Fatal("The key value store can not work without storage")
 	}
 
-	setSrv := setter.NewSetter(shardedMap, labels, &requests)
-	getSrv := getter.NewGetter(shardedMap, &requests)
-	delSrv := deleter.NewDeleter(shardedMap, labels, &requests)
+	setSrv := setter.NewSetter(shardedMap, labels, &requests, tr)
+	getSrv := getter.NewGetter(shardedMap, &requests, tr)
+	delSrv := deleter.NewDeleter(shardedMap, labels, &requests, tr)
 
 	// set logger
 	var postgresConfig = config.PostgresDBParams{}

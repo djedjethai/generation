@@ -1,18 +1,21 @@
 package storage
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel"
 	"sync"
 )
 
 var ErrorNoSuchKey = errors.New("no such key")
+var serviceName = "service1"
 
 type StorageRepo interface {
-	Set(string, interface{}) error
-	Get(string) (interface{}, error)
-	Keys() []string
-	Delete(string) error
+	Set(context.Context, string, interface{}) error
+	Get(context.Context, string) (interface{}, error)
+	Keys(context.Context) []string
+	Delete(context.Context, string) error
 }
 
 type Shard struct {
@@ -48,7 +51,11 @@ func (m ShardedMap) getShard(key string) *Shard {
 	return m[index]
 }
 
-func (m ShardedMap) Set(key string, value interface{}) error {
+func (m ShardedMap) Set(ctx context.Context, key string, value interface{}) error {
+	tr := otel.GetTracerProvider().Tracer(serviceName)
+	_, sp := tr.Start(ctx, "StorageSet")
+	defer sp.End()
+
 	shard := m.getShard(key)
 
 	// if key already exist, remove it first
@@ -57,7 +64,7 @@ func (m ShardedMap) Set(key string, value interface{}) error {
 	shard.RUnlock()
 
 	if ok {
-		m.Delete(key)
+		m.Delete(ctx, key)
 	}
 
 	shard.Lock()
@@ -77,7 +84,11 @@ func (m ShardedMap) Set(key string, value interface{}) error {
 }
 
 // TODO get per type, check with gRPC if that works...
-func (m ShardedMap) Get(key string) (interface{}, error) {
+func (m ShardedMap) Get(ctx context.Context, key string) (interface{}, error) {
+	tr := otel.GetTracerProvider().Tracer(serviceName)
+	_, sp := tr.Start(ctx, "StorageGet")
+	defer sp.End()
+
 	shard := m.getShard(key)
 
 	shard.RLock()
@@ -106,7 +117,11 @@ func (m ShardedMap) Get(key string) (interface{}, error) {
 	}
 }
 
-func (m ShardedMap) Delete(key string) error {
+func (m ShardedMap) Delete(ctx context.Context, key string) error {
+	tr := otel.GetTracerProvider().Tracer(serviceName)
+	_, sp := tr.Start(ctx, "StorageDelete")
+	defer sp.End()
+
 	shard := m.getShard(key)
 
 	shard.RLock()
@@ -125,7 +140,11 @@ func (m ShardedMap) Delete(key string) error {
 }
 
 // establish lock(concurrently) on all the table to get all the keys
-func (m ShardedMap) Keys() []string {
+func (m ShardedMap) Keys(ctx context.Context) []string {
+	tr := otel.GetTracerProvider().Tracer(serviceName)
+	_, sp := tr.Start(ctx, "StorageKeys")
+	defer sp.End()
+
 	keys := make([]string, 0) // Create an empty keys slice
 
 	mutex := sync.Mutex{} // Mutex for write safety to keys
