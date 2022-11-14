@@ -62,64 +62,15 @@ func main() {
 	// 	log.Fatal("Err reading the config file: ", err)
 	// }
 
-	// ================ jaeger config ====================
-	// http://localhost:16686/search
-	stdExporter, err := stdout.NewExporter(
-		stdout.WithPrettyPrint(),
-	)
-
-	jaegerExporter, err := jaeger.NewRawExporter(
-		jaeger.WithCollectorEndpoint(jaegerEndpoint),
-		jaeger.WithProcess(jaeger.Process{
-			ServiceName: serviceName,
-		}),
-	)
-
-	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithSyncer(stdExporter),
-		sdktrace.WithSyncer(jaegerExporter),
-		// sdktrace.WithResource(resource.NewWithAttributes(
-		// 	semconv.SchemaURL,
-		// 	semconv.ServiceNameKey.String(serviceName))),
-	)
-
-	otel.SetTracerProvider(tp)
-
-	// Setting the global tracer provider makes it discoverable via the otel.GetTracerPro
-	// vider function. This allows libraries and other dependencies that use the OpenTele‐
-	// metry API to more easily discover the SDK and emit telemetry data:
-	// gtp := otel.GetTracerProvider(tp)
-	tr := otel.GetTracerProvider().Tracer("service1")
-
-	// ================ prometheus config =================
-	// see prometheus at 127.0.0.1:9090
-	prometheusExporter, err := prometheus.NewExportPipeline(prometheus.Config{})
+	// jaeger config, http://localhost:16686/search
+	tr, err := configJaeger()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal("Error when configuring Jaeger: ", err)
 	}
 
-	// Get the meter provider from the exporter.
-	mp := prometheusExporter.MeterProvider()
+	// prometheus config, 127.0.0.1:9090
+	configPrometheus()
 
-	// Set it as the global meter provider.
-	otel.SetMeterProvider(mp)
-
-	// // Register the exporter as the handler for the "/metrics" pattern.
-	// http.Handle("/metrics", prometheusExporter)
-	// // Start the HTTP server listening on port 3000.
-	// log.Fatal(http.ListenAndServe(":3000", nil))
-	go runPrometheusEndPoint(prometheusExporter)
-
-	// meter := otel.GetMeterProvider().Meter("golru")
-
-	err = buildRequestsCounter()
-	if err != nil {
-		log.Println("Error from build request counter: ", err)
-	}
-
-	buildRuntimeObservers()
-
-	// =========================================
 	// storage(infra layer)
 	// the first arg is the number of shard, the second the number of item/shard
 	var shardedMap storage.ShardedMap
@@ -162,6 +113,70 @@ func main() {
 		log.Fatalln("Invalid protocol...")
 	}
 
+}
+
+func configPrometheus() {
+	prometheusExporter, err := prometheus.NewExportPipeline(prometheus.Config{})
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Get the meter provider from the exporter.
+	mp := prometheusExporter.MeterProvider()
+
+	// Set it as the global meter provider.
+	otel.SetMeterProvider(mp)
+
+	// // Register the exporter as the handler for the "/metrics" pattern.
+	// http.Handle("/metrics", prometheusExporter)
+	// // Start the HTTP server listening on port 3000.
+	// log.Fatal(http.ListenAndServe(":3000", nil))
+	go runPrometheusEndPoint(prometheusExporter)
+
+	// meter := otel.GetMeterProvider().Meter("golru")
+
+	err = buildRequestsCounter()
+	if err != nil {
+		log.Println("Error from build request counter: ", err)
+	}
+
+	buildRuntimeObservers()
+}
+
+func configJaeger() (config.Tracer, error) {
+	stdExporter, err := stdout.NewExporter(
+		stdout.WithPrettyPrint(),
+	)
+	if err != nil {
+		log.Println("Error creating a Jaeger new exporter: ", err)
+		var ct config.Tracer
+		return ct, err
+	}
+
+	jaegerExporter, err := jaeger.NewRawExporter(
+		jaeger.WithCollectorEndpoint(jaegerEndpoint),
+		jaeger.WithProcess(jaeger.Process{
+			ServiceName: serviceName,
+		}),
+	)
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithSyncer(stdExporter),
+		sdktrace.WithSyncer(jaegerExporter),
+		// sdktrace.WithResource(resource.NewWithAttributes(
+		// 	semconv.SchemaURL,
+		// 	semconv.ServiceNameKey.String(serviceName))),
+	)
+
+	otel.SetTracerProvider(tp)
+
+	// Setting the global tracer provider makes it discoverable via the otel.GetTracerPro
+	// vider function. This allows libraries and other dependencies that use the OpenTele‐
+	// metry API to more easily discover the SDK and emit telemetry data:
+	// gtp := otel.GetTracerProvider(tp)
+	tr := otel.GetTracerProvider().Tracer("service1")
+
+	return tr, nil
 }
 
 func runPrometheusEndPoint(prometheusExporter *prometheus.Exporter) {
