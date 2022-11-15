@@ -6,7 +6,7 @@ import (
 	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/storage"
 	"go.opentelemetry.io/otel/label"
-	"go.opentelemetry.io/otel/metric"
+	// "go.opentelemetry.io/otel/metric"
 )
 
 // run: go generate ./...
@@ -19,24 +19,28 @@ type Getter interface {
 
 type getter struct {
 	st  storage.StorageRepo
-	req *metric.Int64Counter
-	trc config.Tracer
+	obs config.Observability
 }
 
-func NewGetter(s storage.ShardedMap, requests *metric.Int64Counter, tracer config.Tracer) Getter {
+func NewGetter(s storage.ShardedMap, observ config.Observability) Getter {
 	return &getter{
 		st:  s,
-		req: requests,
-		trc: tracer,
+		obs: observ,
 	}
 }
 
 func (s *getter) Get(ctx context.Context, key string) (interface{}, error) {
-	ctx, sp := s.trc.Start(context.Background(), "GetterGet")
-	defer sp.End()
+	if s.obs.IsTracing {
+		ctx1, sp := s.obs.Tracer.Start(context.Background(), "GetterGet")
+		defer sp.End()
 
-	lb := label.Key("getter").String("get")
-	s.req.Add(ctx, 1, lb)
+		ctx = ctx1
+	}
+
+	if s.obs.IsMetrics {
+		lb := label.Key("getter").String("get")
+		s.obs.Requests.Add(ctx, 1, lb)
+	}
 
 	value, err := s.st.Get(ctx, key)
 	if err != nil {
@@ -46,11 +50,18 @@ func (s *getter) Get(ctx context.Context, key string) (interface{}, error) {
 }
 
 func (s *getter) GetKeys(ctx context.Context) []string {
-	ctx, sp := s.trc.Start(context.Background(), "GetterGetkeys")
-	defer sp.End()
 
-	lb := label.Key("getter").String("getkeys")
-	s.req.Add(ctx, 1, lb)
+	if s.obs.IsTracing {
+		ctx1, sp := s.obs.Tracer.Start(context.Background(), "GetterGetkeys")
+		defer sp.End()
+
+		ctx = ctx1
+	}
+
+	if s.obs.IsMetrics {
+		lb := label.Key("getter").String("getkeys")
+		s.obs.Requests.Add(ctx, 1, lb)
+	}
 
 	var keys []string
 	keys = s.st.Keys(ctx)

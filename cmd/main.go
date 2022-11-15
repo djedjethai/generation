@@ -42,7 +42,8 @@ var labels = []label.KeyValue{
 }
 
 var requests metric.Int64Counter
-var serviceName = "golru"
+var appName = "golru"
+var serviceName = "service1"
 
 var jaegerEndpoint = "http://jaeger:14268/api/traces"
 
@@ -62,27 +63,48 @@ func main() {
 	// 	log.Fatal("Err reading the config file: ", err)
 	// }
 
-	// jaeger config, http://localhost:16686/search
-	tr, err := configJaeger()
-	if err != nil {
-		log.Fatal("Error when configuring Jaeger: ", err)
+	// cfg := config.Config{
+	// 	IsTracing: true,
+	// 	IsMetrics: true,
+	// }
+
+	obs := config.Observability{
+		Requests:    &requests,
+		Labels:      labels,
+		IsTracing:   true,
+		IsMetrics:   true,
+		ServiceName: serviceName,
 	}
 
-	// prometheus config, 127.0.0.1:9090
-	configPrometheus()
+	// tracing is on
+	if obs.IsTracing {
+		// jaeger config, http://localhost:16686/search
+		tr, err := configJaeger()
+		if err != nil {
+			log.Fatal("Error when configuring Jaeger: ", err)
+		}
+
+		obs.Tracer = tr
+	}
+
+	// metrics is on
+	if obs.IsMetrics {
+		// prometheus config, 127.0.0.1:9090
+		configPrometheus()
+	}
 
 	// storage(infra layer)
 	// the first arg is the number of shard, the second the number of item/shard
 	var shardedMap storage.ShardedMap
 	if shards > 0 && itemsPerShard > 0 {
-		shardedMap = storage.NewShardedMap(shards, itemsPerShard)
+		shardedMap = storage.NewShardedMap(shards, itemsPerShard, obs)
 	} else {
 		log.Fatal("The key value store can not work without storage")
 	}
 
-	setSrv := setter.NewSetter(shardedMap, labels, &requests, tr)
-	getSrv := getter.NewGetter(shardedMap, &requests, tr)
-	delSrv := deleter.NewDeleter(shardedMap, labels, &requests, tr)
+	setSrv := setter.NewSetter(shardedMap, obs)
+	getSrv := getter.NewGetter(shardedMap, obs)
+	delSrv := deleter.NewDeleter(shardedMap, obs)
 
 	// set logger
 	var postgresConfig = config.PostgresDBParams{}
@@ -156,7 +178,7 @@ func configJaeger() (config.Tracer, error) {
 	jaegerExporter, err := jaeger.NewRawExporter(
 		jaeger.WithCollectorEndpoint(jaegerEndpoint),
 		jaeger.WithProcess(jaeger.Process{
-			ServiceName: serviceName,
+			ServiceName: appName,
 		}),
 	)
 
@@ -174,7 +196,7 @@ func configJaeger() (config.Tracer, error) {
 	// vider function. This allows libraries and other dependencies that use the OpenTele‐
 	// metry API to more easily discover the SDK and emit telemetry data:
 	// gtp := otel.GetTracerProvider(tp)
-	tr := otel.GetTracerProvider().Tracer("service1")
+	tr := otel.GetTracerProvider().Tracer(serviceName)
 
 	return tr, nil
 }
