@@ -7,6 +7,12 @@ services:
     restart: always
     ports:
       - "8080:8080"
+    environment:
+      PORT: ":8080"
+      PORT_GRPC: ":50051"
+      PROTOCOL: http
+      APP_NAME: golru
+      SERVICE_NAME: service1
     deploy:
       mode: replicated
       replicas: 1

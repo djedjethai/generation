@@ -21,18 +21,18 @@ type Observability struct {
 }
 
 type Config struct {
-	EncryptKEY       string `yaml:"encryptK"`
-	Port             string `yaml:"port"`
-	PortGRPC         string `yaml:"portGrpc"`
-	FileLoggerActive bool   `yaml:"fileLoggerActive"`
-	DBLoggerActive   bool   `yaml:"dbLoggerActive"`
-	Shards           int    `yaml:"shards"`
-	ItemsPerShard    int    `yaml:"itemsPerShard"`
-	Protocol         string `yaml:"protocol"`
-	IsTracing        bool   `yaml:"isTracing"`
-	IsMetrics        bool   `yaml:"isMetrics"`
-	ServiceName      string `yaml:"serviceName"`
-	JaegerEndPoint   string `yaml:"jaegerEndPoint"`
+	EncryptKEY       string
+	Port             string
+	PortGRPC         string
+	FileLoggerActive bool
+	DBLoggerActive   bool
+	Shards           int
+	ItemsPerShard    int
+	Protocol         string
+	IsTracing        bool
+	IsMetrics        bool
+	ServiceName      string
+	JaegerEndpoint   string
 }
 
 type PostgresDBParams struct {
