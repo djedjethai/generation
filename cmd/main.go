@@ -1,26 +1,21 @@
 package main
 
 import (
-	// "context"
 	"fmt"
-	"os"
-
 	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/getter"
-
-	"log"
-	"net"
-	"net/http"
-
 	"github.com/djedjethai/generation0/pkg/handlers/grpc"
 	pb "github.com/djedjethai/generation0/pkg/handlers/grpc/proto/keyvalue"
 	"github.com/djedjethai/generation0/pkg/handlers/rest"
 	lgr "github.com/djedjethai/generation0/pkg/logger"
 	"github.com/djedjethai/generation0/pkg/setter"
 	storage "github.com/djedjethai/generation0/pkg/storage"
-	// "github.com/spf13/cobra"
 	gglGrpc "google.golang.org/grpc"
+	"log"
+	"net"
+	"net/http"
+	"os"
 )
 
 func main() {
@@ -33,8 +28,8 @@ func main() {
 	// storage(infra layer)
 	// the first arg is the number of shard, the second the number of item/shard
 	var shardedMap storage.ShardedMap
-	if shards > 0 && itemsPerShard > 0 {
-		shardedMap = storage.NewShardedMap(shards, itemsPerShard, obs)
+	if cfg.Shards > 0 && cfg.ItemsPerShard > 0 {
+		shardedMap = storage.NewShardedMap(cfg.Shards, cfg.ItemsPerShard, obs)
 	} else {
 		log.Fatal("The key value store can not work without storage")
 	}
@@ -45,16 +40,16 @@ func main() {
 
 	// set logger
 	var postgresConfig = config.PostgresDBParams{}
-	if dbLoggerActive {
-		if dbLoggerActive {
-			postgresConfig.Host = "localhost"
-			postgresConfig.DbName = "transactions"
-			postgresConfig.User = "postgres"
-			postgresConfig.Password = "password"
-		}
+	if cfg.DBLoggerActive {
+		// if dbLoggerActive {
+		postgresConfig.Host = "localhost"
+		postgresConfig.DbName = "transactions"
+		postgresConfig.User = "postgres"
+		postgresConfig.Password = "password"
+		// }
 	}
 
-	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, fileLoggerActive, dbLoggerActive, postgresConfig, encryptK)
+	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, cfg.FileLoggerActive, cfg.DBLoggerActive, postgresConfig, cfg.EncryptKEY)
 	defer loggerFacade.CloseFileLogger()
 
 	// in case the srv crash, when start back it will read the logger and recover its state

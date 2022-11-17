@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
-	"fmt"
+	// "fmt"
 	"github.com/djedjethai/generation0/pkg/config"
 	"go.opentelemetry.io/otel"
 	"sync"
@@ -51,7 +51,7 @@ func (m ShardedMap) getShardIndex(key string) int {
 // retrieve the shard where the key is stored
 func (m ShardedMap) getShard(key string) *Shard {
 	index := m.getShardIndex(key)
-	fmt.Println("shard Index: ", index)
+	// fmt.Println("shard Index: ", index)
 	return m.shd[index]
 }
 

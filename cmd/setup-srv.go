@@ -1,21 +1,22 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/djedjethai/generation0/pkg/config"
+	"github.com/djedjethai/generation0/pkg/logger"
+	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
-	"go.opentelemetry.io/otel/exporters/stdout"
+	// "go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
-
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"net/http"
-
-	"context"
-	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"log"
+	"net/http"
 	"os"
 	"runtime"
 )
@@ -90,6 +91,12 @@ func setupSrv() (config.Config, config.Observability, error) {
 		ServiceName: serviceName,
 	}
 
+	// set logger
+	initLogger()
+
+	srvLog := logger.NewSrvLogger("debug")
+	obs.Logger = srvLog
+
 	// tracing is on
 	if obs.IsTracing {
 		// jaeger config, http://localhost:16686/search
@@ -132,6 +139,22 @@ func flagsFunc(cmd *cobra.Command, args []string) {
 	fmt.Println("Is Prometheus enabled:", isMetrics)
 }
 
+func initLogger() {
+	cfg := zap.NewDevelopmentConfig()
+	cfg.EncoderConfig.TimeKey = "" // Turn off timestamp output
+	cfg.Sampling = &zap.SamplingConfig{
+		Initial:    3, // Allow first 3 events/second
+		Thereafter: 3, // Allows 1 per 3 thereafter
+		Hook: func(e zapcore.Entry, d zapcore.SamplingDecision) {
+			if d == zapcore.LogDropped {
+				fmt.Println("event dropped...")
+			}
+		},
+	}
+	logger, _ := cfg.Build()   // Constructs the new logger
+	zap.ReplaceGlobals(logger) // Replace Zap's global logger
+}
+
 func configPrometheus() {
 	prometheusExporter, err := prometheus.NewExportPipeline(prometheus.Config{})
 	if err != nil {
@@ -161,14 +184,14 @@ func configPrometheus() {
 }
 
 func configJaeger() (config.Tracer, error) {
-	stdExporter, err := stdout.NewExporter(
-		stdout.WithPrettyPrint(),
-	)
-	if err != nil {
-		log.Println("Error creating a Jaeger new exporter: ", err)
-		var ct config.Tracer
-		return ct, err
-	}
+	// stdExporter, err := stdout.NewExporter(
+	// 	stdout.WithPrettyPrint(),
+	// )
+	// if err != nil {
+	// 	log.Println("Error creating a Jaeger new exporter: ", err)
+	// 	var ct config.Tracer
+	// 	return ct, err
+	// }
 
 	jaegerExporter, err := jaeger.NewRawExporter(
 		jaeger.WithCollectorEndpoint(jaegerEndpoint),
@@ -176,9 +199,14 @@ func configJaeger() (config.Tracer, error) {
 			ServiceName: appName,
 		}),
 	)
+	if err != nil {
+		log.Println("Error creating a Jaeger new rawExporter: ", err)
+		var ct config.Tracer
+		return ct, err
+	}
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithSyncer(stdExporter),
+		// sdktrace.WithSyncer(stdExporter),
 		sdktrace.WithSyncer(jaegerExporter),
 		// sdktrace.WithResource(resource.NewWithAttributes(
 		// 	semconv.SchemaURL,
