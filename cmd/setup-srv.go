@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/djedjethai/generation0/pkg/config"
-	"github.com/djedjethai/generation0/pkg/logger"
+	"github.com/djedjethai/generation0/pkg/serviceLogger"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
+	"time"
 	// "go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	"go.opentelemetry.io/otel/label"
@@ -40,6 +41,7 @@ var fileLoggerActive bool
 var dbLoggerActive bool
 var isTracing bool
 var isMetrics bool
+var logMode string
 var requests metric.Int64Counter
 
 var appName string
@@ -63,6 +65,14 @@ func setupSrv() (config.Config, config.Observability, error) {
 	protocol := os.Getenv("PROTOCOL")
 	app_name := os.Getenv("APP_NAME")
 	service_name := os.Getenv("SERVICE_NAME")
+
+	// TODO to delete
+	port = ":8080"
+	protocol = "http"
+	app_name = "golru"
+	service_name = "service1"
+	logMode = "debug"
+	// end to delete
 
 	appName = app_name
 	serviceName = service_name
@@ -91,11 +101,11 @@ func setupSrv() (config.Config, config.Observability, error) {
 		ServiceName: serviceName,
 	}
 
-	// set logger
-	initLogger()
-
-	srvLog := logger.NewSrvLogger("debug")
+	srvLog := serviceLogger.NewSrvLogger(logMode)
 	obs.Logger = srvLog
+
+	// set logger
+	initLogger(logMode)
 
 	// tracing is on
 	if obs.IsTracing {
@@ -126,6 +136,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&dbLoggerActive, "dbLogger", "d", false, "enable the database logging")
 	rootCmd.Flags().BoolVarP(&isTracing, "isTracing", "t", false, "enable Jaeger tracing")
 	rootCmd.Flags().BoolVarP(&isMetrics, "isMetrics", "m", false, "enable Prometheus metrics")
+	rootCmd.Flags().StringVarP(&logMode, "loggerMode", "l", "prod", "logger mode can be prod, development, debug")
 }
 
 func flagsFunc(cmd *cobra.Command, args []string) {
@@ -137,14 +148,21 @@ func flagsFunc(cmd *cobra.Command, args []string) {
 	fmt.Println("Is db logger enabled:", dbLoggerActive)
 	fmt.Println("Is Jaeger enabled:", isTracing)
 	fmt.Println("Is Prometheus enabled:", isMetrics)
+	fmt.Println("Log level:", logMode)
 }
 
-func initLogger() {
-	cfg := zap.NewDevelopmentConfig()
-	cfg.EncoderConfig.TimeKey = "" // Turn off timestamp output
+func initLogger(logMode string) {
+	var cfg zap.Config
+	if logMode == "debug" {
+		cfg = zap.NewDevelopmentConfig()
+	} else {
+
+		cfg = zap.NewProductionConfig()
+	}
+	cfg.EncoderConfig.TimeKey = fmt.Sprintf(time.Now().Format("2006-01-02 15:04:05")) // Turn off timestamp output
 	cfg.Sampling = &zap.SamplingConfig{
-		Initial:    3, // Allow first 3 events/second
-		Thereafter: 3, // Allows 1 per 3 thereafter
+		Initial:    100, // Allow first 3 events/second
+		Thereafter: 100, // Allows 1 per 3 thereafter
 		Hook: func(e zapcore.Entry, d zapcore.SamplingDecision) {
 			if d == zapcore.LogDropped {
 				fmt.Println("event dropped...")

@@ -2,12 +2,11 @@ package setter
 
 import (
 	"context"
-	// "fmt"
-
+	"errors"
 	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/storage"
 	"go.opentelemetry.io/otel/label"
-	"go.uber.org/zap"
+	// "go.uber.org/zap"
 )
 
 //go:generate mockgen -destination=../mocks/setter/mockSetter.go -package=setter github.com/djedjethai/generation0/pkg/setter Setter
@@ -32,11 +31,17 @@ func NewSetter(s storage.ShardedMap, observ config.Observability) Setter {
 
 func (s *setter) Set(ctx context.Context, key string, value []byte) error {
 
-	zap.S().Debugw(
-		"Testing zap, in Set",
-		"in setter",
-		"line 38",
-	)
+	// zap.S().Errorw(
+	// 	"Testing zap, in Set",
+	// 	"in set",
+	// 	"setter",
+	// )
+	// s.obs.Logger.Debug("test debug", "setter", "set")
+	s.obs.Logger.Error("test alert", errors.New("my error"))
+	s.obs.Logger.Warning("test alert", "domainouuuooo")
+	s.obs.Logger.Info("test alert", "domainouuuooo")
+	s.obs.Logger.Debug("test alert", "domainouuuooo")
+	// s.obs.Logger.Alert("test alert", "setter", "Set", "test errrrrrr")
 
 	if s.obs.IsTracing {
 		ctx1, sp := s.obs.Tracer.Start(context.Background(), "SetterSet")

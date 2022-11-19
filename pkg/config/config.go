@@ -2,7 +2,7 @@ package config
 
 import (
 	"context"
-	"github.com/djedjethai/generation0/pkg/logger"
+	"github.com/djedjethai/generation0/pkg/serviceLogger"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -14,7 +14,7 @@ type Tracer interface {
 }
 
 type Observability struct {
-	Logger      *logger.SrvLogger
+	Logger      *serviceLogger.SrvLogger
 	Requests    *metric.Int64Counter
 	Labels      []label.KeyValue
 	Tracer      Tracer
