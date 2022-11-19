@@ -1,21 +1,23 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/djedjethai/generation0/pkg/config"
+	"github.com/djedjethai/generation0/pkg/serviceLogger"
+	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
-	"go.opentelemetry.io/otel/exporters/stdout"
+	"time"
+	// "go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
-
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"net/http"
-
-	"context"
-	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"log"
+	"net/http"
 	"os"
 	"runtime"
 )
@@ -39,6 +41,7 @@ var fileLoggerActive bool
 var dbLoggerActive bool
 var isTracing bool
 var isMetrics bool
+var logMode string
 var requests metric.Int64Counter
 
 var appName string
@@ -62,6 +65,14 @@ func setupSrv() (config.Config, config.Observability, error) {
 	protocol := os.Getenv("PROTOCOL")
 	app_name := os.Getenv("APP_NAME")
 	service_name := os.Getenv("SERVICE_NAME")
+
+	// TODO to delete
+	port = ":8080"
+	protocol = "http"
+	app_name = "golru"
+	service_name = "service1"
+	logMode = "debug"
+	// end to delete
 
 	appName = app_name
 	serviceName = service_name
@@ -89,6 +100,12 @@ func setupSrv() (config.Config, config.Observability, error) {
 		IsMetrics:   isMetrics,
 		ServiceName: serviceName,
 	}
+
+	srvLog := serviceLogger.NewSrvLogger(logMode)
+	obs.Logger = srvLog
+
+	// set logger
+	initLogger(logMode)
 
 	// tracing is on
 	if obs.IsTracing {
@@ -119,6 +136,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&dbLoggerActive, "dbLogger", "d", false, "enable the database logging")
 	rootCmd.Flags().BoolVarP(&isTracing, "isTracing", "t", false, "enable Jaeger tracing")
 	rootCmd.Flags().BoolVarP(&isMetrics, "isMetrics", "m", false, "enable Prometheus metrics")
+	rootCmd.Flags().StringVarP(&logMode, "loggerMode", "l", "prod", "logger mode can be prod, development, debug")
 }
 
 func flagsFunc(cmd *cobra.Command, args []string) {
@@ -130,6 +148,29 @@ func flagsFunc(cmd *cobra.Command, args []string) {
 	fmt.Println("Is db logger enabled:", dbLoggerActive)
 	fmt.Println("Is Jaeger enabled:", isTracing)
 	fmt.Println("Is Prometheus enabled:", isMetrics)
+	fmt.Println("Log level:", logMode)
+}
+
+func initLogger(logMode string) {
+	var cfg zap.Config
+	if logMode == "debug" {
+		cfg = zap.NewDevelopmentConfig()
+	} else {
+
+		cfg = zap.NewProductionConfig()
+	}
+	cfg.EncoderConfig.TimeKey = fmt.Sprintf(time.Now().Format("2006-01-02 15:04:05")) // Turn off timestamp output
+	cfg.Sampling = &zap.SamplingConfig{
+		Initial:    100, // Allow first 3 events/second
+		Thereafter: 100, // Allows 1 per 3 thereafter
+		Hook: func(e zapcore.Entry, d zapcore.SamplingDecision) {
+			if d == zapcore.LogDropped {
+				fmt.Println("event dropped...")
+			}
+		},
+	}
+	logger, _ := cfg.Build()   // Constructs the new logger
+	zap.ReplaceGlobals(logger) // Replace Zap's global logger
 }
 
 func configPrometheus() {
@@ -161,14 +202,14 @@ func configPrometheus() {
 }
 
 func configJaeger() (config.Tracer, error) {
-	stdExporter, err := stdout.NewExporter(
-		stdout.WithPrettyPrint(),
-	)
-	if err != nil {
-		log.Println("Error creating a Jaeger new exporter: ", err)
-		var ct config.Tracer
-		return ct, err
-	}
+	// stdExporter, err := stdout.NewExporter(
+	// 	stdout.WithPrettyPrint(),
+	// )
+	// if err != nil {
+	// 	log.Println("Error creating a Jaeger new exporter: ", err)
+	// 	var ct config.Tracer
+	// 	return ct, err
+	// }
 
 	jaegerExporter, err := jaeger.NewRawExporter(
 		jaeger.WithCollectorEndpoint(jaegerEndpoint),
@@ -176,9 +217,14 @@ func configJaeger() (config.Tracer, error) {
 			ServiceName: appName,
 		}),
 	)
+	if err != nil {
+		log.Println("Error creating a Jaeger new rawExporter: ", err)
+		var ct config.Tracer
+		return ct, err
+	}
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithSyncer(stdExporter),
+		// sdktrace.WithSyncer(stdExporter),
 		sdktrace.WithSyncer(jaegerExporter),
 		// sdktrace.WithResource(resource.NewWithAttributes(
 		// 	semconv.SchemaURL,
