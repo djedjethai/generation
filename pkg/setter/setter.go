@@ -2,7 +2,6 @@ package setter
 
 import (
 	"context"
-	"errors"
 	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/storage"
 	"go.opentelemetry.io/otel/label"
@@ -31,33 +30,29 @@ func NewSetter(s storage.ShardedMap, observ config.Observability) Setter {
 
 func (s *setter) Set(ctx context.Context, key string, value []byte) error {
 
-	// zap.S().Errorw(
-	// 	"Testing zap, in Set",
-	// 	"in set",
-	// 	"setter",
-	// )
-	// s.obs.Logger.Debug("test debug", "setter", "set")
-	s.obs.Logger.Error("test alert", errors.New("my error"))
-	s.obs.Logger.Warning("test alert", "domainouuuooo")
-	s.obs.Logger.Info("test alert", "domainouuuooo")
-	s.obs.Logger.Debug("test alert", "domainouuuooo")
+	s.obs.Logger.Debug("Setter/Set()", "hit func")
+
+	// s.obs.Logger.Error("test alert", errors.New("my error"))
+	// s.obs.Logger.Warning("test alert", "domainouuuooo")
+	// s.obs.Logger.Info("test alert", "domainouuuooo")
 	// s.obs.Logger.Alert("test alert", "setter", "Set", "test errrrrrr")
 
-	if s.obs.IsTracing {
-		ctx1, sp := s.obs.Tracer.Start(context.Background(), "SetterSet")
-		defer sp.End()
+	ctx, teardown := s.obs.StartTrace(ctx, "SetterSet")
+	defer teardown()
 
-		ctx = ctx1
-	}
+	s.obs.AddMetrics(ctx)
 
-	if s.obs.IsMetrics {
-		s.obs.Requests.Add(ctx, 1, s.obs.Labels...)
-	}
+	// if s.obs.IsMetrics {
+	// 	s.obs.Requests.Add(ctx, 1, s.obs.Labels...)
+	// }
 
 	err := s.st.Set(ctx, key, string(value))
 	if err != nil {
+		s.obs.Logger.Error("Setter/Set() failed", err)
 		return err
 	}
+
+	s.obs.Logger.Debug("Setter/Set()", "executed successfully")
 	return nil
 
 }

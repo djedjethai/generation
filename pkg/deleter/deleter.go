@@ -2,7 +2,6 @@ package deleter
 
 import (
 	"context"
-
 	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/storage"
 	"go.opentelemetry.io/otel/label"
@@ -30,20 +29,24 @@ func NewDeleter(s storage.ShardedMap, observ config.Observability) Deleter {
 }
 
 func (s *deleter) Delete(ctx context.Context, key string) error {
-	if s.obs.IsTracing {
-		ctx1, sp := s.obs.Tracer.Start(context.Background(), "DeleterDelete")
-		defer sp.End()
 
-		ctx = ctx1
-	}
+	s.obs.Logger.Debug("Deleter/Delete()", "hit func")
 
-	if s.obs.IsMetrics {
-		s.obs.Requests.Add(ctx, 1, s.obs.Labels...)
-	}
+	ctx, teardown := s.obs.StartTrace(ctx, "DeleterDelete")
+	defer teardown()
+
+	s.obs.AddMetrics(ctx)
+
+	// if s.obs.IsMetrics {
+	// 	s.obs.Requests.Add(ctx, 1, s.obs.Labels...)
+	// }
 
 	err := s.st.Delete(ctx, key)
 	if err != nil {
+		s.obs.Logger.Error("Deleter/Delete() failed", err)
 		return err
 	}
+
+	s.obs.Logger.Debug("Deleter/Delete()", "executed successfully")
 	return nil
 }
