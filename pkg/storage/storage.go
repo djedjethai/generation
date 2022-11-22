@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	// "fmt"
-	"github.com/djedjethai/generation0/pkg/config"
+	"github.com/djedjethai/generation0/pkg/observability"
 	"sync"
 )
 
@@ -14,7 +14,7 @@ type StorageRepo interface {
 	Set(context.Context, string, interface{}) error
 	Get(context.Context, string) (interface{}, error)
 	Keys(context.Context) []string
-	Delete(context.Context, string) error
+	Delete(context.Context, string, *Shard) error
 }
 
 type Shard struct {
@@ -23,13 +23,17 @@ type Shard struct {
 	dll dll
 }
 
+// TODO idea: improvement: encode key ??
+// TODO idea: the key are saved into the node(and in the shardedMap), if remove key from node
+// how to know which key has been removed when last element is poped out
+
 // type ShardedMap []*Shard
 type ShardedMap struct {
 	shd []*Shard
-	obs config.Observability
+	obs observability.Observability
 }
 
-func NewShardedMap(nShard, maxLgt int, observ config.Observability) ShardedMap {
+func NewShardedMap(nShard, maxLgt int, observ observability.Observability) ShardedMap {
 	shards := make([]*Shard, nShard)
 
 	for i := 0; i < nShard; i++ {
@@ -68,7 +72,7 @@ func (m ShardedMap) Set(ctx context.Context, key string, value interface{}) erro
 
 	if ok {
 		m.obs.Logger.Debug("ShardedMap.Set()", "delete existing key")
-		m.Delete(ctx, key)
+		m.Delete(ctx, key, shard)
 	}
 
 	shard.Lock()
@@ -81,6 +85,7 @@ func (m ShardedMap) Set(ctx context.Context, key string, value interface{}) erro
 	}
 	if outN != nil {
 		m.obs.Logger.Debug("ShardedMap.Set()", "delete existing expired queue element")
+		// delete the poped node from the shard record
 		delete(shard.m, outN.key)
 	}
 
@@ -124,12 +129,18 @@ func (m ShardedMap) Get(ctx context.Context, key string) (interface{}, error) {
 	}
 }
 
-func (m ShardedMap) Delete(ctx context.Context, key string) error {
+func (m ShardedMap) Delete(ctx context.Context, key string, sh *Shard) error {
 
 	teardown := m.obs.CarryOnTrace(ctx, "StorageDelete")
 	defer teardown()
 
-	shard := m.getShard(key)
+	// in the case delete a poped node, we already have the *Shard
+	var shard *Shard
+	if sh != nil {
+		shard = sh
+	} else {
+		shard = m.getShard(key)
+	}
 
 	shard.RLock()
 	nd, ok := shard.m[key]

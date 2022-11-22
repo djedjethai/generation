@@ -1,4 +1,4 @@
-package serviceLogger
+package observability
 
 import (
 	"go.uber.org/zap"

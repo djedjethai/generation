@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/djedjethai/generation0/pkg/config"
-	"github.com/djedjethai/generation0/pkg/serviceLogger"
+	"github.com/djedjethai/generation0/pkg/observability"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
@@ -47,10 +47,10 @@ var requests metric.Int64Counter
 var appName string
 var serviceName string
 
-func setupSrv() (config.Config, config.Observability, error) {
+func setupSrv() (config.Config, observability.Observability, error) {
 
 	var cfg config.Config
-	var obs config.Observability
+	var obs observability.Observability
 
 	// configs from flags
 	if err := rootCmd.Execute(); err != nil {
@@ -66,7 +66,7 @@ func setupSrv() (config.Config, config.Observability, error) {
 	app_name := os.Getenv("APP_NAME")
 	service_name := os.Getenv("SERVICE_NAME")
 
-	// TODO to delete
+	// TODO to delete if use VAR_ENV
 	port = ":8080"
 	protocol = "http"
 	app_name = "golru"
@@ -93,7 +93,7 @@ func setupSrv() (config.Config, config.Observability, error) {
 
 	fmt.Println("seeeee: ", cfg)
 
-	obs = config.Observability{
+	obs = observability.Observability{
 		Requests:    &requests,
 		Labels:      labels,
 		IsTracing:   isTracing,
@@ -101,7 +101,7 @@ func setupSrv() (config.Config, config.Observability, error) {
 		ServiceName: serviceName,
 	}
 
-	srvLog := serviceLogger.NewSrvLogger(logMode)
+	srvLog := observability.NewSrvLogger(logMode)
 	obs.Logger = srvLog
 
 	// set logger
@@ -130,8 +130,8 @@ func setupSrv() (config.Config, config.Observability, error) {
 func init() {
 	rootCmd.Flags().StringVarP(&jaegerEndpoint, "jaeger", "j", "http://jaeger:14268/api/traces", "the Jaeger end point to connect")
 	rootCmd.Flags().StringVarP(&encryptK, "encryptK", "e", "HFrdn79ljrjLDZHlV1t+BdxHRFf5", "an encoding key to encrypt data to file logs")
-	rootCmd.Flags().IntVarP(&shards, "shards", "s", 4, "number of shards")
-	rootCmd.Flags().IntVarP(&itemsPerShard, "itemPerShard", "i", 400, "number of shards")
+	rootCmd.Flags().IntVarP(&shards, "shards", "s", 2, "number of shards")
+	rootCmd.Flags().IntVarP(&itemsPerShard, "itemPerShard", "i", 10, "number of shards")
 	rootCmd.Flags().BoolVarP(&fileLoggerActive, "fileLogger", "f", false, "enable the file logging")
 	rootCmd.Flags().BoolVarP(&dbLoggerActive, "dbLogger", "d", false, "enable the database logging")
 	rootCmd.Flags().BoolVarP(&isTracing, "isTracing", "t", false, "enable Jaeger tracing")
@@ -201,7 +201,7 @@ func configPrometheus() {
 	buildRuntimeObservers()
 }
 
-func configJaeger() (config.Tracer, error) {
+func configJaeger() (observability.Tracer, error) {
 	// stdExporter, err := stdout.NewExporter(
 	// 	stdout.WithPrettyPrint(),
 	// )
@@ -219,7 +219,7 @@ func configJaeger() (config.Tracer, error) {
 	)
 	if err != nil {
 		log.Println("Error creating a Jaeger new rawExporter: ", err)
-		var ct config.Tracer
+		var ct observability.Tracer
 		return ct, err
 	}
 

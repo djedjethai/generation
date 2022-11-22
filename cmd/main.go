@@ -41,12 +41,10 @@ func main() {
 	// set logger
 	var postgresConfig = config.PostgresDBParams{}
 	if cfg.DBLoggerActive {
-		// if dbLoggerActive {
 		postgresConfig.Host = "localhost"
 		postgresConfig.DbName = "transactions"
 		postgresConfig.User = "postgres"
 		postgresConfig.Password = "password"
-		// }
 	}
 
 	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, cfg.FileLoggerActive, cfg.DBLoggerActive, postgresConfig, cfg.EncryptKEY)

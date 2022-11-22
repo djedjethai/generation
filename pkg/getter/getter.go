@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/djedjethai/generation0/pkg/config"
+	"github.com/djedjethai/generation0/pkg/observability"
 	"github.com/djedjethai/generation0/pkg/storage"
-	"go.opentelemetry.io/otel/label"
-	// "go.opentelemetry.io/otel/metric"
 )
 
 // run: go generate ./...
@@ -20,10 +18,10 @@ type Getter interface {
 
 type getter struct {
 	st  storage.StorageRepo
-	obs config.Observability
+	obs observability.Observability
 }
 
-func NewGetter(s storage.ShardedMap, observ config.Observability) Getter {
+func NewGetter(s storage.ShardedMap, observ observability.Observability) Getter {
 	return &getter{
 		st:  s,
 		obs: observ,
@@ -38,11 +36,6 @@ func (s *getter) Get(ctx context.Context, key string) (interface{}, error) {
 	defer teardown()
 
 	s.obs.AddMetricsAndSpecificLabel(ctx, "getter", "get")
-
-	// if s.obs.IsMetrics {
-	// 	lb := label.Key("getter").String("get")
-	// 	s.obs.Requests.Add(ctx, 1, lb)
-	// }
 
 	value, err := s.st.Get(ctx, key)
 	if err != nil {
@@ -61,17 +54,7 @@ func (s *getter) GetKeys(ctx context.Context) []string {
 	ctx, teardown := s.obs.StartTrace(ctx, "GetterGetKeys")
 	defer teardown()
 
-	// if s.obs.IsTracing {
-	// 	ctx1, sp := s.obs.Tracer.Start(context.Background(), "GetterGetkeys")
-	// 	defer sp.End()
-
-	// 	ctx = ctx1
-	// }
-
-	if s.obs.IsMetrics {
-		lb := label.Key("getter").String("getkeys")
-		s.obs.Requests.Add(ctx, 1, lb)
-	}
+	s.obs.AddMetricsAndSpecificLabel(ctx, "getter", "getkeys")
 
 	var keys []string
 	keys = s.st.Keys(ctx)

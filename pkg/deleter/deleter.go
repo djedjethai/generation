@@ -2,10 +2,9 @@ package deleter
 
 import (
 	"context"
-	"github.com/djedjethai/generation0/pkg/config"
+	"github.com/djedjethai/generation0/pkg/observability"
 	"github.com/djedjethai/generation0/pkg/storage"
 	"go.opentelemetry.io/otel/label"
-	// "go.opentelemetry.io/otel/metric"
 )
 
 //go:generate mockgen -destination=../mocks/deleter/mockDeleter.go -package=deleter github.com/djedjethai/generation0/pkg/deleter Deleter
@@ -15,10 +14,10 @@ type Deleter interface {
 
 type deleter struct {
 	st  storage.StorageRepo
-	obs config.Observability
+	obs observability.Observability
 }
 
-func NewDeleter(s storage.ShardedMap, observ config.Observability) Deleter {
+func NewDeleter(s storage.ShardedMap, observ observability.Observability) Deleter {
 	// run the query: golru_requests_total{deleter="delete"}
 	lb := label.Key("deleter").String("delete")
 	observ.Labels = append(observ.Labels, lb)
@@ -37,11 +36,7 @@ func (s *deleter) Delete(ctx context.Context, key string) error {
 
 	s.obs.AddMetrics(ctx)
 
-	// if s.obs.IsMetrics {
-	// 	s.obs.Requests.Add(ctx, 1, s.obs.Labels...)
-	// }
-
-	err := s.st.Delete(ctx, key)
+	err := s.st.Delete(ctx, key, nil)
 	if err != nil {
 		s.obs.Logger.Error("Deleter/Delete() failed", err)
 		return err
