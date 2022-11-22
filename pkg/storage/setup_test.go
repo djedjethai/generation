@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"github.com/djedjethai/generation0/pkg/observability"
 	"os"
 	"testing"
 )
@@ -11,7 +12,9 @@ var shardedMap ShardedMap
 
 func TestMain(m *testing.M) {
 
-	shardedMap = NewShardedMap(3, 10)
+	obs := observability.Observability{}
+
+	shardedMap = NewShardedMap(3, 10, obs)
 
 	os.Exit(m.Run())
 }

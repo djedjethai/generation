@@ -23,7 +23,7 @@ type Shard struct {
 	dll dll
 }
 
-// TODO idea: improvement: encode key ??
+// TODO idea: improvement: encode key to save space ??
 // TODO idea: the key are saved into the node(and in the shardedMap), if remove key from node
 // how to know which key has been removed when last element is poped out
 
