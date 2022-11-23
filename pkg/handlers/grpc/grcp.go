@@ -5,9 +5,9 @@ import (
 	"log"
 	// "net"
 
+	pb "github.com/djedjethai/generation0/api/proto/keyvalue"
 	"github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/getter"
-	pb "github.com/djedjethai/generation0/pkg/handlers/grpc/proto/keyvalue"
 	"github.com/djedjethai/generation0/pkg/logger"
 	"github.com/djedjethai/generation0/pkg/setter"
 	// "google.golang.org/grpc"

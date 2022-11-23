@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	pb "github.com/djedjethai/generation0/api/proto/keyvalue"
 	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/getter"
 	"github.com/djedjethai/generation0/pkg/handlers/grpc"
-	pb "github.com/djedjethai/generation0/pkg/handlers/grpc/proto/keyvalue"
 	"github.com/djedjethai/generation0/pkg/handlers/rest"
 	lgr "github.com/djedjethai/generation0/pkg/logger"
 	"github.com/djedjethai/generation0/pkg/setter"

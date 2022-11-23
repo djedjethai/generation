@@ -69,6 +69,7 @@ func setupSrv() (config.Config, observability.Observability, error) {
 	// TODO to delete if use VAR_ENV
 	port = ":8080"
 	protocol = "http"
+	// port_grpc = ":50051"
 	app_name = "golru"
 	service_name = "service1"
 	logMode = "debug"

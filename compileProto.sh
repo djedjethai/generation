@@ -1,4 +1,4 @@
-PROTO_DIR=/home/jerome/Documents/code/goCloudNative/keyValueStore/generation0/pkg/handlers/grpc/proto/keyvalue 
+PROTO_DIR=/home/jerome/Documents/code/goCloudNative/keyValueStore/generation0/api/proto/keyvalue 
 
 # that generate only the protoBuf file(but does not compile the grpc)
 # PACKAGE=github.com/djedjethai/generation0/pkg/handlers/grcp/proto/keyvalue
