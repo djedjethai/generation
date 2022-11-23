@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,7 @@ import (
 	"github.com/djedjethai/generation0/pkg/config"
 	dele "github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/logger"
+	"github.com/djedjethai/generation0/pkg/observability"
 	sett "github.com/djedjethai/generation0/pkg/setter"
 	"github.com/djedjethai/generation0/pkg/storage"
 )
@@ -17,13 +19,16 @@ func Test_delete_should_return_nil_if_value_is_deleted(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
 
-	st := storage.NewShardedMap(1, 3)
-	ss := sett.NewSetter(st)
-	ds := dele.NewDeleter(st)
+	obs := observability.Observability{}
+	ctx := context.Background()
+
+	st := storage.NewShardedMap(1, 3, obs)
+	ss := sett.NewSetter(st, obs)
+	ds := dele.NewDeleter(st, obs)
 
 	lf, _ := logger.NewLoggerFacade(ss, ds, false, false, config.PostgresDBParams{}, "encryptk")
 
-	mockDeleterSrv.EXPECT().Delete("key-a").Return(nil)
+	mockDeleterSrv.EXPECT().Delete(ctx, "key-a").Return(nil)
 
 	router.HandleFunc("/v1/{key}", keyValueDeleteHandler(mockDeleterSrv, lf))
 
@@ -46,14 +51,17 @@ func Test_delete_should_return_err_if_delete_service_return_an_err(t *testing.T)
 	teardown := setup(t)
 	defer teardown()
 
+	obs := observability.Observability{}
+	ctx := context.Background()
+
 	// no storage will return an err
-	st := storage.NewShardedMap(1, 3)
-	ss := sett.NewSetter(st)
-	ds := dele.NewDeleter(st)
+	st := storage.NewShardedMap(1, 3, obs)
+	ss := sett.NewSetter(st, obs)
+	ds := dele.NewDeleter(st, obs)
 
 	lf, _ := logger.NewLoggerFacade(ss, ds, false, false, config.PostgresDBParams{}, "encryptk")
 
-	mockDeleterSrv.EXPECT().Delete("key-a").Return(errors.New("what ever..."))
+	mockDeleterSrv.EXPECT().Delete(ctx, "key-a").Return(errors.New("what ever..."))
 
 	router.HandleFunc("/v1/{key}", keyValueDeleteHandler(mockDeleterSrv, lf))
 
