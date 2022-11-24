@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	pb "github.com/djedjethai/generation0/api/proto/keyvalue"
+	pb "github.com/djedjethai/generation0/api/v1/keyvalue"
 	"github.com/djedjethai/generation0/pkg/config"
 	"github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/getter"

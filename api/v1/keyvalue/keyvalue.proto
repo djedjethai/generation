@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/djedjethai/generation0/api/proto/keyvalue";
+option go_package = "github.com/djedjethai/generation0/api/v1/keyvalue";
 
 service KeyValue {
 	rpc Get(GetRequest) returns (GetResponse);
