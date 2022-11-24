@@ -67,8 +67,9 @@ func setupSrv() (config.Config, observability.Observability, error) {
 	service_name := os.Getenv("SERVICE_NAME")
 
 	// TODO to delete if use VAR_ENV
-	port = ":8080"
 	protocol = "http"
+	port = ":8080"
+	// protocol = "grpc"
 	// port_grpc = ":50051"
 	app_name = "golru"
 	service_name = "service1"

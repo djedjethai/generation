@@ -23,7 +23,7 @@ func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, er
 
 	err := s.SetSrv.Set(ctx, r.Key, []byte(r.Value))
 	if err == nil {
-		s.LoggerFacade.WritePut(string(r.Key), string(r.Value))
+		s.LoggerFacade.WriteSet(string(r.Key), string(r.Value))
 	}
 
 	return &pb.PutResponse{}, err
