@@ -21,6 +21,7 @@ func NewNode(key string, val interface{}) (*node, error) {
 		next: nil,
 		key:  key,
 	}
+	// TODO idea: in case we store other types than string using gRPC
 	switch val.(type) {
 	case string:
 		nd.val = val.(string)

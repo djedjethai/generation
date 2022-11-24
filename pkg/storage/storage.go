@@ -118,6 +118,7 @@ func (m ShardedMap) Get(ctx context.Context, key string) (interface{}, error) {
 		_, _ = shard.dll.unshiftNode(ndExist)
 	}
 
+	// TODO idea: in case we store other types than string using gRPC
 	if nd.val != "" {
 		return nd.val, nil
 	} else if nd.valInt != 0 {
