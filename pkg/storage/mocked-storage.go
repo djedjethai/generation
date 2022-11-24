@@ -1,39 +1,42 @@
 package storage
 
 import (
+	"context"
 	"errors"
 )
 
-type mShardedMap []*Shard
+type mShardedMap struct {
+	shd []*Shard
+}
 
 func NewMockedShardedMap(nShard, maxLgt int) mShardedMap {
 	shards := make([]*Shard, nShard)
 
-	return shards
+	return mShardedMap{shards}
 }
 
-func (ms mShardedMap) Set(key string, value interface{}) error {
+func (ms mShardedMap) Set(ctx context.Context, key string, value interface{}) error {
 	if key == "error" {
 		return errors.New("an errr...")
 	}
 	return nil
 }
 
-func (ms mShardedMap) Get(key string) (interface{}, error) {
+func (ms mShardedMap) Get(ctx context.Context, key string) (interface{}, error) {
 	if key == "key" {
 		return "value", nil
 	}
 	return nil, errors.New("an error")
 }
 
-func (ms mShardedMap) Delete(key string) error {
+func (ms mShardedMap) Delete(ctx context.Context, key string, shard *Shard) error {
 	if key == "err" {
 		return errors.New("an err")
 	}
 	return nil
 }
 
-func (ms mShardedMap) Keys() []string {
+func (ms mShardedMap) Keys(ctx context.Context) []string {
 	var str []string
 
 	return str

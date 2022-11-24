@@ -2,15 +2,12 @@ package grpc
 
 import (
 	"context"
-	"log"
-	// "net"
 
+	pb "github.com/djedjethai/generation0/api/v1/keyvalue"
 	"github.com/djedjethai/generation0/pkg/deleter"
 	"github.com/djedjethai/generation0/pkg/getter"
-	pb "github.com/djedjethai/generation0/pkg/handlers/grpc/proto/keyvalue"
 	"github.com/djedjethai/generation0/pkg/logger"
 	"github.com/djedjethai/generation0/pkg/setter"
-	// "google.golang.org/grpc"
 )
 
 type Server struct {
@@ -26,14 +23,13 @@ func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, er
 
 	err := s.SetSrv.Set(ctx, r.Key, []byte(r.Value))
 	if err == nil {
-		s.LoggerFacade.WritePut(string(r.Key), string(r.Value))
+		s.LoggerFacade.WriteSet(string(r.Key), string(r.Value))
 	}
 
 	return &pb.PutResponse{}, err
 }
 
 func (s *Server) Get(ctx context.Context, r *pb.GetRequest) (*pb.GetResponse, error) {
-	log.Printf("Received get key=%v", r.Key)
 
 	value, err := s.GetSrv.Get(ctx, r.Key)
 

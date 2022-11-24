@@ -28,7 +28,7 @@ func NewFileTransactionLogger(filename, encryptK string) (TransactionLogger, err
 	}, nil
 }
 
-func (l *FileTransactionLogger) WritePut(key, value string) {
+func (l *FileTransactionLogger) WriteSet(key, value string) {
 	key, err := internal.Encrypt(key, l.encryptK)
 	value, err = internal.Encrypt(value, l.encryptK)
 	if err != nil {

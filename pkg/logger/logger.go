@@ -20,7 +20,7 @@ const (
 type TransactionLogger interface {
 	CloseFileLogger()
 	WriteDelete(key string)
-	WritePut(key, value string)
+	WriteSet(key, value string)
 	Err() <-chan error
 	Run()
 	ReadEvents() (<-chan Event, <-chan error)
@@ -61,12 +61,12 @@ func NewLoggerFacade(setSrv setter.Setter, delSrv deleter.Deleter, fileLoggerAct
 	}, err
 }
 
-func (lf *LoggerFacade) WritePut(key, value string) {
+func (lf *LoggerFacade) WriteSet(key, value string) {
 	if lf.isFileRecord {
-		lf.fileLogger.WritePut(key, value)
+		lf.fileLogger.WriteSet(key, value)
 	}
 	if lf.isDBRecord {
-		lf.dbLogger.WritePut(key, value)
+		lf.dbLogger.WriteSet(key, value)
 	}
 }
 

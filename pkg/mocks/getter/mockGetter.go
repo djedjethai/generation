@@ -5,6 +5,7 @@
 package getter
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,30 +35,30 @@ func (m *MockGetter) EXPECT() *MockGetterMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockGetter) Get(arg0 string) (interface{}, error) {
+func (m *MockGetter) Get(arg0 context.Context, arg1 string) (interface{}, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0)
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
 	ret0, _ := ret[0].(interface{})
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockGetterMockRecorder) Get(arg0 interface{}) *gomock.Call {
+func (mr *MockGetterMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGetter)(nil).Get), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGetter)(nil).Get), arg0, arg1)
 }
 
 // GetKeys mocks base method.
-func (m *MockGetter) GetKeys() []string {
+func (m *MockGetter) GetKeys(arg0 context.Context) []string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKeys")
+	ret := m.ctrl.Call(m, "GetKeys", arg0)
 	ret0, _ := ret[0].([]string)
 	return ret0
 }
 
 // GetKeys indicates an expected call of GetKeys.
-func (mr *MockGetterMockRecorder) GetKeys() *gomock.Call {
+func (mr *MockGetterMockRecorder) GetKeys(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeys", reflect.TypeOf((*MockGetter)(nil).GetKeys))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeys", reflect.TypeOf((*MockGetter)(nil).GetKeys), arg0)
 }

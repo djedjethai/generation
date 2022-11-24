@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	// "fmt"
-	"github.com/djedjethai/generation0/pkg/config"
-	"go.opentelemetry.io/otel"
+	"github.com/djedjethai/generation0/pkg/observability"
 	"sync"
 )
 
@@ -15,7 +14,7 @@ type StorageRepo interface {
 	Set(context.Context, string, interface{}) error
 	Get(context.Context, string) (interface{}, error)
 	Keys(context.Context) []string
-	Delete(context.Context, string) error
+	Delete(context.Context, string, *Shard) error
 }
 
 type Shard struct {
@@ -24,13 +23,17 @@ type Shard struct {
 	dll dll
 }
 
+// TODO idea: improvement: encode key to save space ??
+// TODO idea: the key are saved into the node(and in the shardedMap), if remove key from node
+// how to know which key has been removed when last element is poped out
+
 // type ShardedMap []*Shard
 type ShardedMap struct {
 	shd []*Shard
-	obs config.Observability
+	obs observability.Observability
 }
 
-func NewShardedMap(nShard, maxLgt int, observ config.Observability) ShardedMap {
+func NewShardedMap(nShard, maxLgt int, observ observability.Observability) ShardedMap {
 	shards := make([]*Shard, nShard)
 
 	for i := 0; i < nShard; i++ {
@@ -56,11 +59,9 @@ func (m ShardedMap) getShard(key string) *Shard {
 }
 
 func (m ShardedMap) Set(ctx context.Context, key string, value interface{}) error {
-	if m.obs.IsTracing {
-		tr := otel.GetTracerProvider().Tracer(m.obs.ServiceName)
-		_, sp := tr.Start(ctx, "StorageSet")
-		defer sp.End()
-	}
+
+	teardown := m.obs.CarryOnTrace(ctx, "StorageSet")
+	defer teardown()
 
 	shard := m.getShard(key)
 
@@ -70,7 +71,8 @@ func (m ShardedMap) Set(ctx context.Context, key string, value interface{}) erro
 	shard.RUnlock()
 
 	if ok {
-		m.Delete(ctx, key)
+		m.obs.Logger.Debug("ShardedMap.Set()", "delete existing key")
+		m.Delete(ctx, key, shard)
 	}
 
 	shard.Lock()
@@ -78,9 +80,12 @@ func (m ShardedMap) Set(ctx context.Context, key string, value interface{}) erro
 
 	newN, outN, err := shard.dll.unshift(key, value)
 	if err != nil {
+		m.obs.Logger.Error("ShardedMap.Set() failed", err)
 		return err
 	}
 	if outN != nil {
+		m.obs.Logger.Debug("ShardedMap.Set()", "delete existing expired queue element")
+		// delete the poped node from the shard record
 		delete(shard.m, outN.key)
 	}
 
@@ -91,11 +96,9 @@ func (m ShardedMap) Set(ctx context.Context, key string, value interface{}) erro
 
 // TODO get per type, check with gRPC if that works...
 func (m ShardedMap) Get(ctx context.Context, key string) (interface{}, error) {
-	if m.obs.IsTracing {
-		tr := otel.GetTracerProvider().Tracer(m.obs.ServiceName)
-		_, sp := tr.Start(ctx, "StorageGet")
-		defer sp.End()
-	}
+
+	teardown := m.obs.CarryOnTrace(ctx, "StorageGet")
+	defer teardown()
 
 	shard := m.getShard(key)
 
@@ -111,6 +114,7 @@ func (m ShardedMap) Get(ctx context.Context, key string) (interface{}, error) {
 
 	ndExist := shard.dll.removeNode(nd)
 	if ndExist != nil {
+		m.obs.Logger.Debug("ShardedMap.Get()", "unshift shifted node")
 		_, _ = shard.dll.unshiftNode(ndExist)
 	}
 
@@ -125,14 +129,18 @@ func (m ShardedMap) Get(ctx context.Context, key string) (interface{}, error) {
 	}
 }
 
-func (m ShardedMap) Delete(ctx context.Context, key string) error {
-	if m.obs.IsTracing {
-		tr := otel.GetTracerProvider().Tracer(m.obs.ServiceName)
-		_, sp := tr.Start(ctx, "StorageDelete")
-		defer sp.End()
-	}
+func (m ShardedMap) Delete(ctx context.Context, key string, sh *Shard) error {
 
-	shard := m.getShard(key)
+	teardown := m.obs.CarryOnTrace(ctx, "StorageDelete")
+	defer teardown()
+
+	// in the case delete a poped node, we already have the *Shard
+	var shard *Shard
+	if sh != nil {
+		shard = sh
+	} else {
+		shard = m.getShard(key)
+	}
 
 	shard.RLock()
 	nd, ok := shard.m[key]
@@ -142,6 +150,7 @@ func (m ShardedMap) Delete(ctx context.Context, key string) error {
 	defer shard.Unlock()
 
 	if ok {
+		m.obs.Logger.Debug("ShardedMap.Delete()", "delete node")
 		_ = shard.dll.removeNode(nd)
 		delete(shard.m, key)
 	}
@@ -151,11 +160,9 @@ func (m ShardedMap) Delete(ctx context.Context, key string) error {
 
 // establish lock(concurrently) on all the table to get all the keys
 func (m ShardedMap) Keys(ctx context.Context) []string {
-	if m.obs.IsTracing {
-		tr := otel.GetTracerProvider().Tracer(m.obs.ServiceName)
-		_, sp := tr.Start(ctx, "StorageKeys")
-		defer sp.End()
-	}
+
+	teardown := m.obs.CarryOnTrace(ctx, "StorageKeys")
+	defer teardown()
 
 	keys := make([]string, 0) // Create an empty keys slice
 

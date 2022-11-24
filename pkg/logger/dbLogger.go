@@ -66,7 +66,7 @@ func (l *PostgresTransactionLogger) CloseFileLogger() {
 	}
 }
 
-func (l *PostgresTransactionLogger) WritePut(key, value string) {
+func (l *PostgresTransactionLogger) WriteSet(key, value string) {
 	l.events <- Event{EventType: EventPut, Key: key, Value: value}
 }
 

@@ -17,7 +17,7 @@ func Handler(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter,
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", helloMuxHandler())
-	r.HandleFunc("/v1/{key}", keyValuePutHandler(setSrv, loggerFacade)).Methods("PUT")
+	r.HandleFunc("/v1/{key}", keyValueSetHandler(setSrv, loggerFacade)).Methods("PUT")
 	r.HandleFunc("/v1/{key}", keyValueGetHandler(getSrv)).Methods("GET")
 	r.HandleFunc("/v1/{key}", keyValueDeleteHandler(delSrv, loggerFacade)).Methods("DELETE")
 	r.HandleFunc("/v1/util/keys", keyValueGetKeysHandler(getSrv)).Methods("GET")

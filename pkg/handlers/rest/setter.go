@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func keyValuePutHandler(setSrv setter.Setter, loggerFacade *logger.LoggerFacade) func(w http.ResponseWriter, r *http.Request) {
+func keyValueSetHandler(setSrv setter.Setter, loggerFacade *logger.LoggerFacade) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		key := vars["key"]
@@ -36,7 +36,7 @@ func keyValuePutHandler(setSrv setter.Setter, loggerFacade *logger.LoggerFacade)
 				http.StatusInternalServerError)
 			return
 		}
-		loggerFacade.WritePut(key, string(value))
+		loggerFacade.WriteSet(key, string(value))
 
 		w.WriteHeader(http.StatusCreated)
 	}
