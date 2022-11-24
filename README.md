@@ -25,11 +25,30 @@ Reading the book "Cloud Native Go(edition O'REILLY)" by Matthew A.Titmus(thank y
 
 ## Start the Key-Value-Store
 - `docker-compose up --build` build(add the configuration flags needed in the Dockerfile) and run the Key Value Store container, a Postgres  container, a Jaeger container, a Prometheus container. If the tracing has been enabled see the traces at `http://localhost:16686/search`, if the metrics has been enabled see them at `http://localhost:9090`  
-- As Transaction-logs, Tracing and Metrics are by default disabled, the Key Value Store will works fine with
+- As Transaction-logs, Tracing and Metrics are by default disabled, the Key Value Store will work fine with
 ```
 cd cmd
 go run .
 ```
+
+
+## Available requests
+- The actual available requests
+```
+// add a value
+curl -X PUT -d 'Hello, key-value store!' -v http://localhost:8080/v1/key-a
+
+// get the value
+curl -X GET http://localhost:8080/v1/key-a
+
+// get all keys in storage
+curl -X GET http://localhost:8080/v1/util/keys
+
+// delete a value
+curl -X DELETE http://localhost:8080/v1/key-a
+```
+
+- A few files to stress test the service are available in `testScript`
 
 
 ## Conclusion
