@@ -48,7 +48,7 @@ curl -X PUT -d 'Hello, key-value storeT!' -v http://localhost:8080/v1/coooool
 curl -X PUT -d 'Hello, key-value storeT!' -v http://localhost:8080/v1/finex
 curl -X PUT -d 'Hello, key-value storeT!' -v http://localhost:8080/v1/enfin
 curl -X PUT -d 'Hello, key-value storeT!' -v http://localhost:8080/v1/ff
-# will save 48 as 2 keys are repeating
+echo "saved 48 keys as 2 keys are repeating"
 
 
 #curl -X GET http://localhost:8080/v1/key-a

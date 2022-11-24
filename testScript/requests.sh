@@ -250,9 +250,7 @@ curl -X GET http://localhost:8080/v1/key-b
 curl -X GET http://localhost:8080/v1/key-c
 curl -X GET http://localhost:8080/v1/key-d
 curl -X GET http://localhost:8080/v1/key-e
-
-
-echo "finex, should show C and E"
+echo "............... finish ................"
 
 
 

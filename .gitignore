@@ -1,4 +1,5 @@
 bin
 db-data
 nohup.out
+testScript/nohup.out
 cmd/transaction.log
