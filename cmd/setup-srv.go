@@ -66,15 +66,7 @@ func setupSrv() (config.Config, observability.Observability, error) {
 	app_name := os.Getenv("APP_NAME")
 	service_name := os.Getenv("SERVICE_NAME")
 
-	// TODO to delete if use VAR_ENV
-	protocol = "http"
-	port = ":8080"
-	// protocol = "grpc"
-	// port_grpc = ":50051"
-	app_name = "golru"
-	service_name = "service1"
-	logMode = "debug"
-	// end to delete
+	setVarEnv(&protocol, &port, &port_grpc, &app_name, &service_name)
 
 	appName = app_name
 	serviceName = service_name
@@ -93,7 +85,7 @@ func setupSrv() (config.Config, observability.Observability, error) {
 		Protocol:         protocol,
 	}
 
-	fmt.Println("seeeee: ", cfg)
+	fmt.Println("see config: ", cfg)
 
 	obs = observability.Observability{
 		Requests:    &requests,
@@ -127,6 +119,24 @@ func setupSrv() (config.Config, observability.Observability, error) {
 	}
 
 	return cfg, obs, nil
+}
+
+func setVarEnv(protocol, port, port_grpc, app_name, service_name *string) {
+	if len(*protocol) == 0 {
+		*protocol = "http"
+	}
+	if len(*port) == 0 && *protocol == "http" {
+		*port = ":8080"
+	}
+	if len(*port_grpc) == 0 && *protocol == "grpc" {
+		*port_grpc = ":50051"
+	}
+	if len(*app_name) == 0 {
+		*app_name = "golru"
+	}
+	if len(*service_name) == 0 {
+		*service_name = "generation0"
+	}
 }
 
 func init() {
