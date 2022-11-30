@@ -26,7 +26,7 @@ func Test_delete_should_return_nil_if_value_is_deleted(t *testing.T) {
 	ss := sett.NewSetter(st, obs)
 	ds := dele.NewDeleter(st, obs)
 
-	lf, _ := logger.NewLoggerFacade(ss, ds, false, false, config.PostgresDBParams{}, "encryptk")
+	lf, _ := logger.NewLoggerFacade(ss, ds, false, config.PostgresDBParams{})
 
 	mockDeleterSrv.EXPECT().Delete(ctx, "key-a").Return(nil)
 
@@ -59,7 +59,7 @@ func Test_delete_should_return_err_if_delete_service_return_an_err(t *testing.T)
 	ss := sett.NewSetter(st, obs)
 	ds := dele.NewDeleter(st, obs)
 
-	lf, _ := logger.NewLoggerFacade(ss, ds, false, false, config.PostgresDBParams{}, "encryptk")
+	lf, _ := logger.NewLoggerFacade(ss, ds, false, config.PostgresDBParams{})
 
 	mockDeleterSrv.EXPECT().Delete(ctx, "key-a").Return(errors.New("what ever..."))
 

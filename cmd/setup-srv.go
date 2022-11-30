@@ -135,7 +135,7 @@ func setVarEnv(protocol, port, port_grpc, app_name, service_name *string) {
 		*app_name = "golru"
 	}
 	if len(*service_name) == 0 {
-		*service_name = "generation0"
+		*service_name = "generation"
 	}
 }
 
@@ -144,7 +144,6 @@ func init() {
 	rootCmd.Flags().StringVarP(&encryptK, "encryptK", "e", "HFrdn79ljrjLDZHlV1t+BdxHRFf5", "an encoding key to encrypt data to file logs")
 	rootCmd.Flags().IntVarP(&shards, "shards", "s", 2, "number of shards")
 	rootCmd.Flags().IntVarP(&itemsPerShard, "itemPerShard", "i", 10, "number of shards")
-	rootCmd.Flags().BoolVarP(&fileLoggerActive, "fileLogger", "f", false, "enable the file logging")
 	rootCmd.Flags().BoolVarP(&dbLoggerActive, "dbLogger", "d", false, "enable the database logging")
 	rootCmd.Flags().BoolVarP(&isTracing, "isTracing", "t", false, "enable Jaeger tracing")
 	rootCmd.Flags().BoolVarP(&isMetrics, "isMetrics", "m", false, "enable Prometheus metrics")
@@ -156,7 +155,6 @@ func flagsFunc(cmd *cobra.Command, args []string) {
 	fmt.Println("Encryption key:", encryptK)
 	fmt.Println("Shards:", shards)
 	fmt.Println("Items per shard:", itemsPerShard)
-	fmt.Println("Is file logger enabled:", fileLoggerActive)
 	fmt.Println("Is db logger enabled:", dbLoggerActive)
 	fmt.Println("Is Jaeger enabled:", isTracing)
 	fmt.Println("Is Prometheus enabled:", isMetrics)

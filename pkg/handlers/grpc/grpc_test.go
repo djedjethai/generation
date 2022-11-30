@@ -35,7 +35,7 @@ func setupTest(t *testing.T) (pb.KeyValueClient, func()) {
 	getSrv := getter.NewGetter(shardedMap, obs)
 	delSrv := deleter.NewDeleter(shardedMap, obs)
 	postgresConfig := config.PostgresDBParams{}
-	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, false, false, postgresConfig, "encryptionkey")
+	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, false, postgresConfig)
 	require.NoError(t, err)
 
 	pb.RegisterKeyValueServer(s, &Server{

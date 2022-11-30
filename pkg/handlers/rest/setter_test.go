@@ -27,7 +27,7 @@ func Test_put_should_return_nil_if_value_is_added(t *testing.T) {
 	ss := sett.NewSetter(st, obs)
 	ds := dele.NewDeleter(st, obs)
 
-	lf, _ := logger.NewLoggerFacade(ss, ds, false, false, config.PostgresDBParams{}, "encryptk")
+	lf, _ := logger.NewLoggerFacade(ss, ds, false, config.PostgresDBParams{})
 
 	mockSetterSrv.EXPECT().Set(ctx, "key-a", []uint8{118, 97, 108, 117, 101, 45, 97}).Return(nil)
 
@@ -59,7 +59,7 @@ func Test_put_should_return_err_service_return_err(t *testing.T) {
 	ss := sett.NewSetter(st, obs)
 	ds := dele.NewDeleter(st, obs)
 
-	lf, _ := logger.NewLoggerFacade(ss, ds, false, false, config.PostgresDBParams{}, "encryptk")
+	lf, _ := logger.NewLoggerFacade(ss, ds, false, config.PostgresDBParams{})
 
 	mockSetterSrv.EXPECT().Set(ctx, "key-a", []uint8{118, 97, 108, 117, 101, 45, 97}).Return(errors.New("what ever..."))
 

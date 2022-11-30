@@ -34,87 +34,73 @@ type Event struct {
 }
 
 type TransactionLoggerFactory struct {
-	setSrv           setter.Setter
-	delSrv           deleter.Deleter
-	fileLoggerActive bool
-	dbLoggerActive   bool
-	postgresConfig   config.PostgresDBParams
-	encryptK         string
+	setSrv         setter.Setter
+	delSrv         deleter.Deleter
+	dbLoggerActive bool
+	postgresConfig config.PostgresDBParams
 }
 
 type LoggerFacade struct {
-	fileLogger   TransactionLogger
-	dbLogger     TransactionLogger
-	isFileRecord bool
-	isDBRecord   bool
+	// fileLogger   TransactionLogger
+	dbLogger   TransactionLogger
+	isDBRecord bool
 }
 
-func NewLoggerFacade(setSrv setter.Setter, delSrv deleter.Deleter, fileLoggerActive bool, dbLoggerActive bool, postgresConfig config.PostgresDBParams, encryptK string) (*LoggerFacade, error) {
+func NewLoggerFacade(setSrv setter.Setter, delSrv deleter.Deleter, dbLoggerActive bool, postgresConfig config.PostgresDBParams) (*LoggerFacade, error) {
 
-	fileLogger, dbLogger, err := NewTransactionLoggerFactory(setSrv, delSrv, fileLoggerActive, dbLoggerActive, postgresConfig, encryptK).Start()
+	dbLogger, err := NewTransactionLoggerFactory(setSrv, delSrv, dbLoggerActive, postgresConfig).Start()
 
 	return &LoggerFacade{
-		fileLogger:   fileLogger,
-		dbLogger:     dbLogger,
-		isFileRecord: fileLoggerActive,
-		isDBRecord:   dbLoggerActive,
+		dbLogger:   dbLogger,
+		isDBRecord: dbLoggerActive,
 	}, err
 }
 
 func (lf *LoggerFacade) WriteSet(key, value string) {
-	if lf.isFileRecord {
-		lf.fileLogger.WriteSet(key, value)
-	}
 	if lf.isDBRecord {
 		lf.dbLogger.WriteSet(key, value)
 	}
 }
 
 func (lf *LoggerFacade) WriteDelete(key string) {
-	if lf.isFileRecord {
-		lf.fileLogger.WriteDelete(key)
-	}
 	if lf.isDBRecord {
 		lf.dbLogger.WriteDelete(key)
 	}
 }
 
-func (lf *LoggerFacade) CloseFileLogger() func() {
-	if lf.isFileRecord && lf.isDBRecord {
-		return func() {
-			defer lf.fileLogger.CloseFileLogger()
-			defer lf.dbLogger.CloseFileLogger()
-		}
-	}
+// func (lf *LoggerFacade) CloseFileLogger() func() {
+// 	if lf.isFileRecord && lf.isDBRecord {
+// 		return func() {
+// 			defer lf.fileLogger.CloseFileLogger()
+// 			defer lf.dbLogger.CloseFileLogger()
+// 		}
+// 	}
+//
+// 	if !lf.isFileRecord && lf.isDBRecord {
+// 		return func() {
+// 			defer lf.dbLogger.CloseFileLogger()
+// 		}
+// 	}
+//
+// 	if lf.isFileRecord && !lf.isDBRecord {
+// 		return func() {
+// 			defer lf.fileLogger.CloseFileLogger()
+// 		}
+// 	}
+// 	return nil
+// }
 
-	if !lf.isFileRecord && lf.isDBRecord {
-		return func() {
-			defer lf.dbLogger.CloseFileLogger()
-		}
-	}
-
-	if lf.isFileRecord && !lf.isDBRecord {
-		return func() {
-			defer lf.fileLogger.CloseFileLogger()
-		}
-	}
-	return nil
-}
-
-func NewTransactionLoggerFactory(setSrv setter.Setter, delSrv deleter.Deleter, fileLoggerActive, dbLoggerActive bool, postgresConfig config.PostgresDBParams, encryptK string) *TransactionLoggerFactory {
+func NewTransactionLoggerFactory(setSrv setter.Setter, delSrv deleter.Deleter, dbLoggerActive bool, postgresConfig config.PostgresDBParams) *TransactionLoggerFactory {
 	return &TransactionLoggerFactory{
-		setSrv:           setSrv,
-		delSrv:           delSrv,
-		fileLoggerActive: fileLoggerActive,
-		dbLoggerActive:   dbLoggerActive,
-		postgresConfig:   postgresConfig,
-		encryptK:         encryptK,
+		setSrv:         setSrv,
+		delSrv:         delSrv,
+		dbLoggerActive: dbLoggerActive,
+		postgresConfig: postgresConfig,
 	}
 }
 
-func (tlf *TransactionLoggerFactory) Start() (TransactionLogger, TransactionLogger, error) {
+func (tlf *TransactionLoggerFactory) Start() (TransactionLogger, error) {
 	var err error
-	var fileLogger TransactionLogger
 	var dbLogger TransactionLogger
 
 	if tlf.dbLoggerActive {
@@ -129,19 +115,7 @@ func (tlf *TransactionLoggerFactory) Start() (TransactionLogger, TransactionLogg
 		}
 	}
 
-	if tlf.fileLoggerActive {
-		fileLogger, err = NewFileTransactionLogger("transaction.log", tlf.encryptK)
-		if err != nil {
-			log.Println("Err when initialize fileTransactionLogger", err)
-		}
-
-		err = tlf.runner(fileLogger)
-		if err != nil {
-			log.Println("Err when run fileTransactionLogger", err)
-		}
-	}
-
-	return fileLogger, dbLogger, err
+	return dbLogger, err
 }
 
 func (tlf *TransactionLoggerFactory) runner(logger TransactionLogger) error {
