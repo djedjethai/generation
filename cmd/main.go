@@ -41,7 +41,8 @@ func main() {
 	// set logger
 	var postgresConfig = config.PostgresDBParams{}
 	if cfg.DBLoggerActive {
-		postgresConfig.Host = "localhost"
+		// postgresConfig.Host = "localhost"
+		postgresConfig.Host = "postgres" // in the docker-compose network
 		postgresConfig.DbName = "transactions"
 		postgresConfig.User = "postgres"
 		postgresConfig.Password = "password"

@@ -26,6 +26,7 @@ COPY --from=builder /app/bin/kvs .
 
 EXPOSE 8080
 
+# CMD ["/kvs", "-t", "true", "-m", "true", "-d", "true"]
 CMD ["/kvs", "-t", "true", "-m", "true"]
 # CMD ["/kvs", "-t", "true"]
 # CMD ["/kvs"]

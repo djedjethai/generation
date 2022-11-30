@@ -3,7 +3,7 @@ Reading the book "Cloud Native Go(edition O'REILLY)" by Matthew A.Titmus(thank y
 
 
 ## Generation features
-- An optional Transaction logs(into db or file-system or both) maintains a history of mutating changes executed by the data store, this feature allows, in case of service crashes for eg, the service to replay the transactions to reconstruct its functional state.
+- An optional Transaction logs(into a Postgres database) maintains a history of mutating changes executed by the data store, this feature allows, in case of service crashes for eg, the service to replay the transactions to reconstruct its functional state.
 - The data store is wrapped into a ShardedMap pattern, preventing potential bottleneck resulting from lock contention. Note that the number of shards and number of records per shard are configurable.
 - HTTP and gRPC transport layer protocol are supported.
 - For observability concerns tracing(Jaeger) and metrics(Prometheus) are already instrumented into the code. Still they remain optional so if they(or only one of them) are needed, add the corresponding flag.
@@ -14,7 +14,6 @@ Reading the book "Cloud Native Go(edition O'REILLY)" by Matthew A.Titmus(thank y
   -s, --shards          number of shards (default 10)
   -i, --itemPerShard    number of shards (default 100)
   -d, --dbLogger        enable the database logging (default disabled)
-  -f, --fileLogger      enable the file logging (default disabled)
   -m, --isMetrics       enable Prometheus metrics (default disabled)
   -t, --isTracing       enable Jaeger tracing (default disabled)
   -l, --loggerMode      logger mode can be prod, development, debug (default "prod")

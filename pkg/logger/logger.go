@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/djedjethai/generation/pkg/config"
@@ -68,28 +69,6 @@ func (lf *LoggerFacade) WriteDelete(key string) {
 	}
 }
 
-// func (lf *LoggerFacade) CloseFileLogger() func() {
-// 	if lf.isFileRecord && lf.isDBRecord {
-// 		return func() {
-// 			defer lf.fileLogger.CloseFileLogger()
-// 			defer lf.dbLogger.CloseFileLogger()
-// 		}
-// 	}
-//
-// 	if !lf.isFileRecord && lf.isDBRecord {
-// 		return func() {
-// 			defer lf.dbLogger.CloseFileLogger()
-// 		}
-// 	}
-//
-// 	if lf.isFileRecord && !lf.isDBRecord {
-// 		return func() {
-// 			defer lf.fileLogger.CloseFileLogger()
-// 		}
-// 	}
-// 	return nil
-// }
-
 func NewTransactionLoggerFactory(setSrv setter.Setter, delSrv deleter.Deleter, dbLoggerActive bool, postgresConfig config.PostgresDBParams) *TransactionLoggerFactory {
 	return &TransactionLoggerFactory{
 		setSrv:         setSrv,
@@ -102,6 +81,8 @@ func NewTransactionLoggerFactory(setSrv setter.Setter, delSrv deleter.Deleter, d
 func (tlf *TransactionLoggerFactory) Start() (TransactionLogger, error) {
 	var err error
 	var dbLogger TransactionLogger
+
+	fmt.Println("see postgres config: ", tlf.postgresConfig)
 
 	if tlf.dbLoggerActive {
 		dbLogger, err = NewPostgresTransactionLogger(tlf.postgresConfig)
