@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/djedjethai/generation0/pkg/getter"
+	"github.com/djedjethai/generation/pkg/getter"
 	"github.com/gorilla/mux"
 )
 

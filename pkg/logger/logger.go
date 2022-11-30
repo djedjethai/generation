@@ -3,9 +3,9 @@ package logger
 import (
 	"log"
 
-	"github.com/djedjethai/generation0/pkg/config"
-	"github.com/djedjethai/generation0/pkg/deleter"
-	"github.com/djedjethai/generation0/pkg/setter"
+	"github.com/djedjethai/generation/pkg/config"
+	"github.com/djedjethai/generation/pkg/deleter"
+	"github.com/djedjethai/generation/pkg/setter"
 	"golang.org/x/net/context"
 )
 

@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/djedjethai/generation0/pkg/internal"
+	"github.com/djedjethai/generation/pkg/internal"
 )
 
 type FileTransactionLogger struct {

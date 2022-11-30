@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/djedjethai/generation0/pkg/observability"
+	"github.com/djedjethai/generation/pkg/observability"
 	"testing"
 )
 

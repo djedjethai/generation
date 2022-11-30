@@ -3,7 +3,7 @@ package logger
 import (
 	"database/sql"
 	"fmt"
-	cfg "github.com/djedjethai/generation0/pkg/config"
+	cfg "github.com/djedjethai/generation/pkg/config"
 	_ "github.com/jackc/pgconn"
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"

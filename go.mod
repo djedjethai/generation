@@ -1,4 +1,4 @@
-module github.com/djedjethai/generation0
+module github.com/djedjethai/generation
 
 go 1.19
 

@@ -7,12 +7,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/djedjethai/generation0/pkg/config"
-	dele "github.com/djedjethai/generation0/pkg/deleter"
-	"github.com/djedjethai/generation0/pkg/logger"
-	"github.com/djedjethai/generation0/pkg/observability"
-	sett "github.com/djedjethai/generation0/pkg/setter"
-	"github.com/djedjethai/generation0/pkg/storage"
+	"github.com/djedjethai/generation/pkg/config"
+	dele "github.com/djedjethai/generation/pkg/deleter"
+	"github.com/djedjethai/generation/pkg/logger"
+	"github.com/djedjethai/generation/pkg/observability"
+	sett "github.com/djedjethai/generation/pkg/setter"
+	"github.com/djedjethai/generation/pkg/storage"
 )
 
 func Test_delete_should_return_nil_if_value_is_deleted(t *testing.T) {

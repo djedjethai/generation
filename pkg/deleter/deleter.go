@@ -2,12 +2,12 @@ package deleter
 
 import (
 	"context"
-	"github.com/djedjethai/generation0/pkg/observability"
-	"github.com/djedjethai/generation0/pkg/storage"
+	"github.com/djedjethai/generation/pkg/observability"
+	"github.com/djedjethai/generation/pkg/storage"
 	"go.opentelemetry.io/otel/label"
 )
 
-//go:generate mockgen -destination=../mocks/deleter/mockDeleter.go -package=deleter github.com/djedjethai/generation0/pkg/deleter Deleter
+//go:generate mockgen -destination=../mocks/deleter/mockDeleter.go -package=deleter github.com/djedjethai/generation/pkg/deleter Deleter
 type Deleter interface {
 	Delete(context.Context, string) error
 }

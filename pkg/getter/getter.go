@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/djedjethai/generation0/pkg/observability"
-	"github.com/djedjethai/generation0/pkg/storage"
+	"github.com/djedjethai/generation/pkg/observability"
+	"github.com/djedjethai/generation/pkg/storage"
 )
 
 // run: go generate ./...
 //
-//go:generate mockgen -destination=../mocks/getter/mockGetter.go -package=getter github.com/djedjethai/generation0/pkg/getter Getter
+//go:generate mockgen -destination=../mocks/getter/mockGetter.go -package=getter github.com/djedjethai/generation/pkg/getter Getter
 type Getter interface {
 	Get(context.Context, string) (interface{}, error)
 	GetKeys(context.Context) []string

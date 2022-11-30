@@ -2,8 +2,8 @@ package deleter
 
 import (
 	"context"
-	"github.com/djedjethai/generation0/pkg/observability"
-	"github.com/djedjethai/generation0/pkg/storage"
+	"github.com/djedjethai/generation/pkg/observability"
+	"github.com/djedjethai/generation/pkg/storage"
 	"testing"
 )
 

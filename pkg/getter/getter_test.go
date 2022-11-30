@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/djedjethai/generation0/pkg/observability"
-	"github.com/djedjethai/generation0/pkg/storage"
+	"github.com/djedjethai/generation/pkg/observability"
+	"github.com/djedjethai/generation/pkg/storage"
 )
 
 var getterMocked getter

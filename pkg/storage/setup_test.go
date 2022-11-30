@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/djedjethai/generation0/pkg/observability"
+	"github.com/djedjethai/generation/pkg/observability"
 	"os"
 	"testing"
 )

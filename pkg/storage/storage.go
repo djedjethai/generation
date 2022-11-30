@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	// "fmt"
-	"github.com/djedjethai/generation0/pkg/observability"
+	"github.com/djedjethai/generation/pkg/observability"
 	"sync"
 )
 

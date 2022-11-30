@@ -1,8 +1,8 @@
-# GoLRU (or Generation0 ?)
+# Generation
 Reading the book "Cloud Native Go(edition O'REILLY)" by Matthew A.Titmus(thank you very much), following along I applied Matthew's teaching and ended up with a key value store of type "Least Recently Used"". This kind of Key-Value storage tracks how recently each of its keys have been used and delete the (oldest) one standing outside the predefined boundary memory space. It has the advantage to make sure the predefined capacity of the Key-Value-Store is respected, keeping only the most recent records. 
 
 
-## GoLRU features
+## Generation features
 - An optional Transaction logs(into db or file-system or both) maintains a history of mutating changes executed by the data store, this feature allows, in case of service crashes for eg, the service to replay the transactions to reconstruct its functional state.
 - The data store is wrapped into a ShardedMap pattern, preventing potential bottleneck resulting from lock contention. Note that the number of shards and number of records per shard are configurable.
 - HTTP and gRPC transport layer protocol are supported.
@@ -50,9 +50,6 @@ curl -X DELETE http://localhost:8080/v1/key-a
 
 - A few files to stress test the service are available in `testScript`
 
-
-## Conclusion
-This is not really a project(at this point) but more a fun try to apply what I have learned, however I personally like the result.
 
 
 

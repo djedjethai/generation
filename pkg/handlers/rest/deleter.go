@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/djedjethai/generation0/pkg/deleter"
-	"github.com/djedjethai/generation0/pkg/logger"
+	"github.com/djedjethai/generation/pkg/deleter"
+	"github.com/djedjethai/generation/pkg/logger"
 	"github.com/gorilla/mux"
 )
 

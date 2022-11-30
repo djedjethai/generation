@@ -3,11 +3,11 @@ package grpc
 import (
 	"context"
 
-	pb "github.com/djedjethai/generation0/api/v1/keyvalue"
-	"github.com/djedjethai/generation0/pkg/deleter"
-	"github.com/djedjethai/generation0/pkg/getter"
-	"github.com/djedjethai/generation0/pkg/logger"
-	"github.com/djedjethai/generation0/pkg/setter"
+	pb "github.com/djedjethai/generation/api/v1/keyvalue"
+	"github.com/djedjethai/generation/pkg/deleter"
+	"github.com/djedjethai/generation/pkg/getter"
+	"github.com/djedjethai/generation/pkg/logger"
+	"github.com/djedjethai/generation/pkg/setter"
 )
 
 type Server struct {

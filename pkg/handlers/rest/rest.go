@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/djedjethai/generation0/pkg/deleter"
-	"github.com/djedjethai/generation0/pkg/getter"
-	"github.com/djedjethai/generation0/pkg/logger"
-	"github.com/djedjethai/generation0/pkg/setter"
+	"github.com/djedjethai/generation/pkg/deleter"
+	"github.com/djedjethai/generation/pkg/getter"
+	"github.com/djedjethai/generation/pkg/logger"
+	"github.com/djedjethai/generation/pkg/setter"
 	"github.com/gorilla/mux"
 )
 

@@ -2,12 +2,12 @@ package setter
 
 import (
 	"context"
-	"github.com/djedjethai/generation0/pkg/observability"
-	"github.com/djedjethai/generation0/pkg/storage"
+	"github.com/djedjethai/generation/pkg/observability"
+	"github.com/djedjethai/generation/pkg/storage"
 	"go.opentelemetry.io/otel/label"
 )
 
-//go:generate mockgen -destination=../mocks/setter/mockSetter.go -package=setter github.com/djedjethai/generation0/pkg/setter Setter
+//go:generate mockgen -destination=../mocks/setter/mockSetter.go -package=setter github.com/djedjethai/generation/pkg/setter Setter
 type Setter interface {
 	Set(context.Context, string, []byte) error
 }

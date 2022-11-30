@@ -1,9 +1,9 @@
 package rest
 
 import (
-	"github.com/djedjethai/generation0/pkg/mocks/deleter"
-	"github.com/djedjethai/generation0/pkg/mocks/getter"
-	"github.com/djedjethai/generation0/pkg/mocks/setter"
+	"github.com/djedjethai/generation/pkg/mocks/deleter"
+	"github.com/djedjethai/generation/pkg/mocks/getter"
+	"github.com/djedjethai/generation/pkg/mocks/setter"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"testing"
