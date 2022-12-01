@@ -27,9 +27,9 @@ func setup(t *testing.T) func() {
 	mockSetterSrv = setter.NewMockSetter(ctrl)
 	mockDeleterSrv = deleter.NewMockDeleter(ctrl)
 
-	lf, _ := logger.NewLoggerFacade(mockSetterSrv, mockDeleterSrv, false, config.PostgresDBParams{})
-
 	svc := config.Services{mockSetterSrv, mockGetterSrv, mockDeleterSrv}
+
+	lf, _ := logger.NewLoggerFacade(&svc, false, config.PostgresDBParams{})
 
 	handler = NewHandler(&svc, lf)
 

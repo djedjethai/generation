@@ -2,12 +2,9 @@ package logger
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/djedjethai/generation/pkg/config"
-	"github.com/djedjethai/generation/pkg/deleter"
-	"github.com/djedjethai/generation/pkg/setter"
 	"golang.org/x/net/context"
+	"log"
 )
 
 type EventType byte
@@ -35,8 +32,7 @@ type Event struct {
 }
 
 type TransactionLoggerFactory struct {
-	setSrv         setter.Setter
-	delSrv         deleter.Deleter
+	services       *config.Services
 	dbLoggerActive bool
 	postgresConfig config.PostgresDBParams
 }
@@ -47,9 +43,9 @@ type LoggerFacade struct {
 	isDBRecord bool
 }
 
-func NewLoggerFacade(setSrv setter.Setter, delSrv deleter.Deleter, dbLoggerActive bool, postgresConfig config.PostgresDBParams) (*LoggerFacade, error) {
+func NewLoggerFacade(srv *config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) (*LoggerFacade, error) {
 
-	dbLogger, err := NewTransactionLoggerFactory(setSrv, delSrv, dbLoggerActive, postgresConfig).Start()
+	dbLogger, err := NewTransactionLoggerFactory(srv, dbLoggerActive, postgresConfig).Start()
 
 	return &LoggerFacade{
 		dbLogger:   dbLogger,
@@ -69,10 +65,9 @@ func (lf *LoggerFacade) WriteDelete(key string) {
 	}
 }
 
-func NewTransactionLoggerFactory(setSrv setter.Setter, delSrv deleter.Deleter, dbLoggerActive bool, postgresConfig config.PostgresDBParams) *TransactionLoggerFactory {
+func NewTransactionLoggerFactory(srv *config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) *TransactionLoggerFactory {
 	return &TransactionLoggerFactory{
-		setSrv:         setSrv,
-		delSrv:         delSrv,
+		services:       srv,
 		dbLoggerActive: dbLoggerActive,
 		postgresConfig: postgresConfig,
 	}
@@ -113,9 +108,9 @@ func (tlf *TransactionLoggerFactory) runner(logger TransactionLogger) error {
 		case e, ok = <-events:
 			switch e.EventType {
 			case EventDelete:
-				err = tlf.delSrv.Delete(ctx, e.Key)
+				err = tlf.services.Deleter.Delete(ctx, e.Key)
 			case EventPut:
-				err = tlf.setSrv.Set(ctx, e.Key, []byte(e.Value))
+				err = tlf.services.Setter.Set(ctx, e.Key, []byte(e.Value))
 			}
 
 		}

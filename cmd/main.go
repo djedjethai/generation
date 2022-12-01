@@ -50,7 +50,7 @@ func main() {
 		postgresConfig.Password = "password"
 	}
 
-	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, cfg.DBLoggerActive, postgresConfig)
+	loggerFacade, err := lgr.NewLoggerFacade(&services, cfg.DBLoggerActive, postgresConfig)
 
 	// in case the srv crash, when start back it will read the logger and recover its state
 	// logger, err := initializeTransactionLog(setSrv, delSrv, fileLoggerActive)
