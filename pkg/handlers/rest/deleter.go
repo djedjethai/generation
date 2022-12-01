@@ -5,14 +5,12 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/djedjethai/generation/pkg/deleter"
-	"github.com/djedjethai/generation/pkg/logger"
 	"github.com/gorilla/mux"
 )
 
 // var ErrorNoSuchKey = errors.New("no such key")
 
-func keyValueDeleteHandler(delSrv deleter.Deleter, loggerFacade *logger.LoggerFacade) func(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) keyValueDeleteHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		key := vars["key"]
@@ -20,7 +18,7 @@ func keyValueDeleteHandler(delSrv deleter.Deleter, loggerFacade *logger.LoggerFa
 		// create a context
 		ctx := context.Background()
 
-		err := delSrv.Delete(ctx, key)
+		err := h.services.Deleter.Delete(ctx, key)
 		if errors.Is(err, ErrorNoSuchKey) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		}
@@ -28,7 +26,7 @@ func keyValueDeleteHandler(delSrv deleter.Deleter, loggerFacade *logger.LoggerFa
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		loggerFacade.WriteDelete(key)
+		h.loggerFacade.WriteDelete(key)
 
 		w.WriteHeader(http.StatusOK)
 	}

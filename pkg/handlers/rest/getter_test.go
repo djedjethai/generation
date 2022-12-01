@@ -21,7 +21,7 @@ func Test_getter_should_return_a_value_from_key(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v1/key-a", nil)
 
 	// act
-	router.HandleFunc("/v1/{key}", keyValueGetHandler(mockGetterSrv))
+	router.HandleFunc("/v1/{key}", handler.keyValueGetHandler())
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
 
@@ -47,7 +47,7 @@ func Test_getter_should_return_an_error(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v1/key-a", nil)
 
 	// act
-	router.HandleFunc("/v1/{key}", keyValueGetHandler(mockGetterSrv))
+	router.HandleFunc("/v1/{key}", handler.keyValueGetHandler())
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
 
@@ -68,7 +68,7 @@ func Test_getkeys_should_return_the_keys(t *testing.T) {
 
 	request, _ := http.NewRequest(http.MethodGet, "/util/keys", nil)
 
-	router.HandleFunc("/util/keys", keyValueGetKeysHandler(mockGetterSrv))
+	router.HandleFunc("/util/keys", handler.keyValueGetKeysHandler())
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, request)
 

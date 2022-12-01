@@ -1,5 +1,17 @@
 package config
 
+import (
+	"github.com/djedjethai/generation/pkg/deleter"
+	"github.com/djedjethai/generation/pkg/getter"
+	"github.com/djedjethai/generation/pkg/setter"
+)
+
+type Services struct {
+	Setter  setter.Setter
+	Getter  getter.Getter
+	Deleter deleter.Deleter
+}
+
 type Config struct {
 	EncryptKEY       string
 	Port             string

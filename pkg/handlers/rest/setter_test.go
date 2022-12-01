@@ -7,31 +7,17 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/djedjethai/generation/pkg/config"
-	dele "github.com/djedjethai/generation/pkg/deleter"
-	"github.com/djedjethai/generation/pkg/logger"
-	"github.com/djedjethai/generation/pkg/observability"
-	sett "github.com/djedjethai/generation/pkg/setter"
-	"github.com/djedjethai/generation/pkg/storage"
 )
 
 func Test_put_should_return_nil_if_value_is_added(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
 
-	obs := observability.Observability{}
 	ctx := context.Background()
-
-	st := storage.NewShardedMap(1, 3, obs)
-	ss := sett.NewSetter(st, obs)
-	ds := dele.NewDeleter(st, obs)
-
-	lf, _ := logger.NewLoggerFacade(ss, ds, false, config.PostgresDBParams{})
 
 	mockSetterSrv.EXPECT().Set(ctx, "key-a", []uint8{118, 97, 108, 117, 101, 45, 97}).Return(nil)
 
-	router.HandleFunc("/v1/{key}", keyValueSetHandler(mockSetterSrv, lf))
+	router.HandleFunc("/v1/{key}", handler.keyValueSetHandler())
 
 	request, _ := http.NewRequest(http.MethodPut, "/v1/key-a", strings.NewReader("value-a"))
 	// request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -52,18 +38,11 @@ func Test_put_should_return_err_service_return_err(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
 
-	obs := observability.Observability{}
 	ctx := context.Background()
-
-	st := storage.NewShardedMap(1, 3, obs)
-	ss := sett.NewSetter(st, obs)
-	ds := dele.NewDeleter(st, obs)
-
-	lf, _ := logger.NewLoggerFacade(ss, ds, false, config.PostgresDBParams{})
 
 	mockSetterSrv.EXPECT().Set(ctx, "key-a", []uint8{118, 97, 108, 117, 101, 45, 97}).Return(errors.New("what ever..."))
 
-	router.HandleFunc("/v1/{key}", keyValueSetHandler(mockSetterSrv, lf))
+	router.HandleFunc("/v1/{key}", handler.keyValueSetHandler())
 
 	request, _ := http.NewRequest(http.MethodPut, "/v1/key-a", strings.NewReader("value-a"))
 	// request.Header.Set("Content-Type", "application/x-www-form-urlencoded")

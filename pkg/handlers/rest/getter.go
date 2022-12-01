@@ -7,20 +7,19 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/djedjethai/generation/pkg/getter"
 	"github.com/gorilla/mux"
 )
 
 // var ErrorNoSuchKey = errors.New("no such key")
 
-func keyValueGetHandler(getSrv getter.Getter) func(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) keyValueGetHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		key := vars["key"]
 
 		ctx := context.Background()
 
-		value, err := getSrv.Get(ctx, key)
+		value, err := h.services.Getter.Get(ctx, key)
 		if errors.Is(err, ErrorNoSuchKey) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		}
@@ -44,12 +43,12 @@ func keyValueGetHandler(getSrv getter.Getter) func(w http.ResponseWriter, r *htt
 	}
 }
 
-func keyValueGetKeysHandler(getSrv getter.Getter) func(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) keyValueGetKeysHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := context.Background()
 
-		value := getSrv.GetKeys(ctx)
+		value := h.services.Getter.GetKeys(ctx)
 		stringByte := strings.Join(value, ",")
 
 		w.Write([]byte(stringByte))

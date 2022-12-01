@@ -2,30 +2,39 @@ package rest
 
 import (
 	"errors"
-	"net/http"
-
-	"github.com/djedjethai/generation/pkg/deleter"
-	"github.com/djedjethai/generation/pkg/getter"
+	"github.com/djedjethai/generation/pkg/config"
 	"github.com/djedjethai/generation/pkg/logger"
-	"github.com/djedjethai/generation/pkg/setter"
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
 var ErrorNoSuchKey = errors.New("no such key")
 
-func Handler(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *logger.LoggerFacade) http.Handler {
+type Handler struct {
+	services     *config.Services
+	loggerFacade *logger.LoggerFacade
+}
+
+func NewHandler(svc *config.Services, lf *logger.LoggerFacade) *Handler {
+	return &Handler{
+		services:     svc,
+		loggerFacade: lf,
+	}
+}
+
+func (h *Handler) Multiplex() http.Handler {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", helloMuxHandler())
-	r.HandleFunc("/v1/{key}", keyValueSetHandler(setSrv, loggerFacade)).Methods("PUT")
-	r.HandleFunc("/v1/{key}", keyValueGetHandler(getSrv)).Methods("GET")
-	r.HandleFunc("/v1/{key}", keyValueDeleteHandler(delSrv, loggerFacade)).Methods("DELETE")
-	r.HandleFunc("/v1/util/keys", keyValueGetKeysHandler(getSrv)).Methods("GET")
+	r.HandleFunc("/", h.helloMuxHandler())
+	r.HandleFunc("/v1/{key}", h.keyValueSetHandler()).Methods("PUT")
+	r.HandleFunc("/v1/{key}", h.keyValueGetHandler()).Methods("GET")
+	r.HandleFunc("/v1/{key}", h.keyValueDeleteHandler()).Methods("DELETE")
+	r.HandleFunc("/v1/util/keys", h.keyValueGetKeysHandler()).Methods("GET")
 
 	return r
 }
 
-func helloMuxHandler() func(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) helloMuxHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello gorilla/mux!\n"))
 	}

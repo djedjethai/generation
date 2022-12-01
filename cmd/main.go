@@ -38,6 +38,8 @@ func main() {
 	getSrv := getter.NewGetter(shardedMap, obs)
 	delSrv := deleter.NewDeleter(shardedMap, obs)
 
+	services := config.Services{setSrv, getSrv, delSrv}
+
 	// set logger
 	var postgresConfig = config.PostgresDBParams{}
 	if cfg.DBLoggerActive {
@@ -58,21 +60,19 @@ func main() {
 
 	switch cfg.Protocol {
 	case "http":
-		runHTTP(setSrv, getSrv, delSrv, loggerFacade, cfg.Port)
+		runHTTP(&services, loggerFacade, cfg.Port)
 	case "grpc":
-		runGRPC(setSrv, getSrv, delSrv, loggerFacade, cfg.PortGRPC)
+		runGRPC(&services, loggerFacade, cfg.PortGRPC)
 	default:
 		log.Fatalln("Invalid protocol...")
 	}
 
 }
 
-func runGRPC(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *lgr.LoggerFacade, port string) {
+func runGRPC(services *config.Services, loggerFacade *lgr.LoggerFacade, port string) {
 	s := gglGrpc.NewServer()
 	pb.RegisterKeyValueServer(s, &grpc.Server{
-		SetSrv:       setSrv,
-		GetSrv:       getSrv,
-		DelSrv:       delSrv,
+		Services:     services,
 		LoggerFacade: loggerFacade,
 	})
 
@@ -88,9 +88,10 @@ func runGRPC(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter,
 
 }
 
-func runHTTP(setSrv setter.Setter, getSrv getter.Getter, delSrv deleter.Deleter, loggerFacade *lgr.LoggerFacade, port string) {
+func runHTTP(services *config.Services, loggerFacade *lgr.LoggerFacade, port string) {
 	// handler(application layer)
-	router := rest.Handler(setSrv, getSrv, delSrv, loggerFacade)
+	hdl := rest.NewHandler(services, loggerFacade)
+	router := hdl.Multiplex()
 
 	fmt.Printf("***** Service listening on port %s *****", port)
 	log.Fatal(http.ListenAndServe(port, router))

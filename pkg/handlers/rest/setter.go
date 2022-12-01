@@ -2,15 +2,12 @@ package rest
 
 import (
 	"context"
+	"github.com/gorilla/mux"
 	"io"
 	"net/http"
-
-	"github.com/djedjethai/generation/pkg/logger"
-	"github.com/djedjethai/generation/pkg/setter"
-	"github.com/gorilla/mux"
 )
 
-func keyValueSetHandler(setSrv setter.Setter, loggerFacade *logger.LoggerFacade) func(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) keyValueSetHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		key := vars["key"]
@@ -28,7 +25,7 @@ func keyValueSetHandler(setSrv setter.Setter, loggerFacade *logger.LoggerFacade)
 			return
 		}
 
-		err = setSrv.Set(ctx, key, value)
+		err = h.services.Setter.Set(ctx, key, value)
 
 		if err != nil {
 			http.Error(w,
@@ -36,7 +33,7 @@ func keyValueSetHandler(setSrv setter.Setter, loggerFacade *logger.LoggerFacade)
 				http.StatusInternalServerError)
 			return
 		}
-		loggerFacade.WriteSet(key, string(value))
+		h.loggerFacade.WriteSet(key, string(value))
 
 		w.WriteHeader(http.StatusCreated)
 	}

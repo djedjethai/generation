@@ -38,10 +38,10 @@ func setupTest(t *testing.T) (pb.KeyValueClient, func()) {
 	loggerFacade, err := lgr.NewLoggerFacade(setSrv, delSrv, false, postgresConfig)
 	require.NoError(t, err)
 
+	srv := config.Services{setSrv, getSrv, delSrv}
+
 	pb.RegisterKeyValueServer(s, &Server{
-		SetSrv:       setSrv,
-		GetSrv:       getSrv,
-		DelSrv:       delSrv,
+		Services:     &srv,
 		LoggerFacade: loggerFacade,
 	})
 
