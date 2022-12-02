@@ -10,7 +10,7 @@ import (
 
 type Server struct {
 	pb.UnimplementedKeyValueServer
-	Services     *config.Services
+	Services     config.Services
 	LoggerFacade *logger.LoggerFacade
 }
 

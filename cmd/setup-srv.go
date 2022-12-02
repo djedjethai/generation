@@ -66,7 +66,7 @@ func setupSrv() (config.Config, observability.Observability, error) {
 	app_name := os.Getenv("APP_NAME")
 	service_name := os.Getenv("SERVICE_NAME")
 
-	// protocol = "grpc" // uncomment to switch to grpc
+	protocol = "grpc" // uncomment to switch to grpc
 
 	setVarEnv(&protocol, &port, &port_grpc, &app_name, &service_name)
 

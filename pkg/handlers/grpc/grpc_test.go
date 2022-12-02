@@ -40,7 +40,7 @@ func setupTest(t *testing.T) (pb.KeyValueClient, func()) {
 	require.NoError(t, err)
 
 	pb.RegisterKeyValueServer(s, &Server{
-		Services:     &srv,
+		Services:     srv,
 		LoggerFacade: loggerFacade,
 	})
 

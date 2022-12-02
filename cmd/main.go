@@ -60,16 +60,16 @@ func main() {
 
 	switch cfg.Protocol {
 	case "http":
-		runHTTP(&services, loggerFacade, cfg.Port)
+		runHTTP(services, loggerFacade, cfg.Port)
 	case "grpc":
-		runGRPC(&services, loggerFacade, cfg.PortGRPC)
+		runGRPC(services, loggerFacade, cfg.PortGRPC)
 	default:
 		log.Fatalln("Invalid protocol...")
 	}
 
 }
 
-func runGRPC(services *config.Services, loggerFacade *lgr.LoggerFacade, port string) {
+func runGRPC(services config.Services, loggerFacade *lgr.LoggerFacade, port string) {
 	s := gglGrpc.NewServer()
 	pb.RegisterKeyValueServer(s, &grpc.Server{
 		Services:     services,
@@ -88,7 +88,7 @@ func runGRPC(services *config.Services, loggerFacade *lgr.LoggerFacade, port str
 
 }
 
-func runHTTP(services *config.Services, loggerFacade *lgr.LoggerFacade, port string) {
+func runHTTP(services config.Services, loggerFacade *lgr.LoggerFacade, port string) {
 	// handler(application layer)
 	hdl := rest.NewHandler(services, loggerFacade)
 	router := hdl.Multiplex()

@@ -11,11 +11,11 @@ import (
 var ErrorNoSuchKey = errors.New("no such key")
 
 type Handler struct {
-	services     *config.Services
+	services     config.Services
 	loggerFacade *logger.LoggerFacade
 }
 
-func NewHandler(svc *config.Services, lf *logger.LoggerFacade) *Handler {
+func NewHandler(svc config.Services, lf *logger.LoggerFacade) *Handler {
 	return &Handler{
 		services:     svc,
 		loggerFacade: lf,
