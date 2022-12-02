@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	pb "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/pkg/config"
 	"github.com/djedjethai/generation/pkg/deleter"
 	"github.com/djedjethai/generation/pkg/getter"
@@ -12,6 +11,7 @@ import (
 	"github.com/djedjethai/generation/pkg/setter"
 	storage "github.com/djedjethai/generation/pkg/storage"
 	gglGrpc "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
 	"net/http"
@@ -20,7 +20,7 @@ import (
 
 func main() {
 
-	cfg, obs, err := setupSrv()
+	cfg, obs, postgresConfig, err := setupSrv()
 	if err != nil {
 		os.Exit(1)
 	}
@@ -40,17 +40,7 @@ func main() {
 
 	services := config.Services{setSrv, getSrv, delSrv}
 
-	// set logger
-	var postgresConfig = config.PostgresDBParams{}
-	if cfg.DBLoggerActive {
-		// postgresConfig.Host = "localhost"
-		postgresConfig.Host = "postgres" // in the docker-compose network
-		postgresConfig.DbName = "transactions"
-		postgresConfig.User = "postgres"
-		postgresConfig.Password = "password"
-	}
-
-	loggerFacade, err := lgr.NewLoggerFacade(&services, cfg.DBLoggerActive, postgresConfig)
+	loggerFacade, err := lgr.NewLoggerFacade(services, cfg.DBLoggerActive, postgresConfig)
 
 	// in case the srv crash, when start back it will read the logger and recover its state
 	// logger, err := initializeTransactionLog(setSrv, delSrv, fileLoggerActive)
@@ -60,35 +50,47 @@ func main() {
 
 	switch cfg.Protocol {
 	case "http":
-		runHTTP(services, loggerFacade, cfg.Port)
+		runHTTP(&services, loggerFacade, cfg.Port)
 	case "grpc":
-		runGRPC(services, loggerFacade, cfg.PortGRPC)
+		srv, l := runGRPC(&services, loggerFacade, cfg.PortGRPC)
+		if err := srv.Serve(l); err != nil {
+			log.Fatal("Error run grpc server: ", err)
+		}
+		defer srv.Stop()
+		defer l.Close()
+
 	default:
 		log.Fatalln("Invalid protocol...")
 	}
 
 }
 
-func runGRPC(services config.Services, loggerFacade *lgr.LoggerFacade, port string) {
-	s := gglGrpc.NewServer()
-	pb.RegisterKeyValueServer(s, &grpc.Server{
-		Services:     services,
-		LoggerFacade: loggerFacade,
-	})
+func runGRPC(services *config.Services, loggerFacade *lgr.LoggerFacade, port string) (*gglGrpc.Server, net.Listener) {
 
-	// lis, err := net.Listen("tcp", ":50051")
-	lis, err := net.Listen("tcp", port)
+	l, err := net.Listen("tcp", fmt.Sprintf("%s%s", "127.0.0.1", port))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve: %v", err)
+	// set tls
+	serverTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
+		CertFile:      config.ServerCertFile,
+		KeyFile:       config.ServerKeyFile,
+		CAFile:        config.CAFile,
+		ServerAddress: l.Addr().String(),
+	})
+
+	serverCreds := credentials.NewTLS(serverTLSConfig)
+
+	server, err := grpc.NewGRPCServer(services, loggerFacade, gglGrpc.Creds(serverCreds))
+	if err != nil {
+		log.Fatal("Error create GRPC server: ", err)
 	}
 
+	return server, l
 }
 
-func runHTTP(services config.Services, loggerFacade *lgr.LoggerFacade, port string) {
+func runHTTP(services *config.Services, loggerFacade *lgr.LoggerFacade, port string) {
 	// handler(application layer)
 	hdl := rest.NewHandler(services, loggerFacade)
 	router := hdl.Multiplex()

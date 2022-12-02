@@ -6,12 +6,35 @@ import (
 	pb "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/pkg/config"
 	"github.com/djedjethai/generation/pkg/logger"
+	"google.golang.org/grpc"
 )
 
 type Server struct {
 	pb.UnimplementedKeyValueServer
-	Services     config.Services
+	Services     *config.Services
 	LoggerFacade *logger.LoggerFacade
+}
+
+func NewGRPCServer(services *config.Services, loggerFacade *logger.LoggerFacade, opts ...grpc.ServerOption) (*grpc.Server, error) {
+
+	gsrv := grpc.NewServer(opts...)
+	// gsrv := grpc.NewServer() // uncomment here for no tls
+
+	srv, err := newgrpcserver(services, loggerFacade)
+	if err != nil {
+		return nil, err
+	}
+
+	pb.RegisterKeyValueServer(gsrv, srv)
+
+	return gsrv, nil
+}
+
+func newgrpcserver(services *config.Services, loggerFacade *logger.LoggerFacade) (*Server, error) {
+	return &Server{
+		Services:     services,
+		LoggerFacade: loggerFacade,
+	}, nil
 }
 
 func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {

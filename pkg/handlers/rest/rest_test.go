@@ -5,7 +5,6 @@ import (
 
 	"github.com/djedjethai/generation/pkg/config"
 	"github.com/djedjethai/generation/pkg/logger"
-	// "github.com/djedjethai/generation/pkg/mocks/config"
 	"github.com/djedjethai/generation/pkg/mocks/deleter"
 	"github.com/djedjethai/generation/pkg/mocks/getter"
 	"github.com/djedjethai/generation/pkg/mocks/setter"
@@ -29,9 +28,9 @@ func setup(t *testing.T) func() {
 
 	svc := config.Services{mockSetterSrv, mockGetterSrv, mockDeleterSrv}
 
-	lf, _ := logger.NewLoggerFacade(&svc, false, config.PostgresDBParams{})
+	lf, _ := logger.NewLoggerFacade(svc, false, config.PostgresDBParams{})
 
-	handler = NewHandler(svc, lf)
+	handler = NewHandler(&svc, lf)
 
 	// router = mux.NewRouter()
 	router = handler.Multiplex().(*mux.Router)

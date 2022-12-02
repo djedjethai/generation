@@ -47,15 +47,16 @@ var requests metric.Int64Counter
 var appName string
 var serviceName string
 
-func setupSrv() (config.Config, observability.Observability, error) {
+func setupSrv() (config.Config, observability.Observability, config.PostgresDBParams, error) {
 
 	var cfg config.Config
 	var obs observability.Observability
+	var postgresConfig = config.PostgresDBParams{}
 
 	// configs from flags
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)
-		return cfg, obs, err
+		return cfg, obs, postgresConfig, err
 		// os.Exit(1)
 	}
 
@@ -120,7 +121,16 @@ func setupSrv() (config.Config, observability.Observability, error) {
 		configPrometheus()
 	}
 
-	return cfg, obs, nil
+	// set logger
+	if cfg.DBLoggerActive {
+		// postgresConfig.Host = "localhost"
+		postgresConfig.Host = "postgres" // in the docker-compose network
+		postgresConfig.DbName = "transactions"
+		postgresConfig.User = "postgres"
+		postgresConfig.Password = "password"
+	}
+
+	return cfg, obs, postgresConfig, nil
 }
 
 func setVarEnv(protocol, port, port_grpc, app_name, service_name *string) {

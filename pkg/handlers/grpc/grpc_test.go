@@ -16,16 +16,32 @@ import (
 	"github.com/djedjethai/generation/pkg/setter"
 	"github.com/djedjethai/generation/pkg/storage"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 	gglGrpc "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 func setupTest(t *testing.T) (pb.KeyValueClient, func()) {
 	t.Helper()
-	s := gglGrpc.NewServer()
-	l, err := net.Listen("tcp", ":0")
+	// s := gglGrpc.NewServer()
+	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	clientOptions := []gglGrpc.DialOption{gglGrpc.WithInsecure()}
-	cc, err := gglGrpc.Dial(l.Addr().String(), clientOptions...)
+
+	// set tls for the client
+	clientTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
+		CertFile: config.ClientCertFile,
+		KeyFile:  config.ClientKeyFile,
+		CAFile:   config.CAFile,
+	})
+	require.NoError(t, err)
+	clientCreds := credentials.NewTLS(clientTLSConfig)
+
+	// clientOptions := []gglGrpc.DialOption{gglGrpc.WithInsecure()}
+	// cc, err := gglGrpc.Dial(l.Addr().String(), clientOptions...)
+	cc, err := gglGrpc.Dial(
+		l.Addr().String(),
+		grpc.WithTransportCredentials(clientCreds),
+	)
 	require.NoError(t, err)
 
 	// set service
@@ -36,13 +52,21 @@ func setupTest(t *testing.T) (pb.KeyValueClient, func()) {
 	delSrv := deleter.NewDeleter(shardedMap, obs)
 	postgresConfig := config.PostgresDBParams{}
 	srv := config.Services{setSrv, getSrv, delSrv}
-	loggerFacade, err := lgr.NewLoggerFacade(&srv, false, postgresConfig)
+	loggerFacade, err := lgr.NewLoggerFacade(srv, false, postgresConfig)
 	require.NoError(t, err)
 
-	pb.RegisterKeyValueServer(s, &Server{
-		Services:     srv,
-		LoggerFacade: loggerFacade,
+	serverTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
+		CertFile:      config.ServerCertFile,
+		KeyFile:       config.ServerKeyFile,
+		CAFile:        config.CAFile,
+		ServerAddress: l.Addr().String(),
 	})
+	require.NoError(t, err)
+	serverCreds := credentials.NewTLS(serverTLSConfig)
+	require.NoError(t, err)
+
+	s, err := NewGRPCServer(&srv, loggerFacade, gglGrpc.Creds(serverCreds))
+	require.NoError(t, err)
 
 	go func() {
 		s.Serve(l)

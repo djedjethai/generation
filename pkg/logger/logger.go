@@ -32,7 +32,7 @@ type Event struct {
 }
 
 type TransactionLoggerFactory struct {
-	services       *config.Services
+	services       config.Services
 	dbLoggerActive bool
 	postgresConfig config.PostgresDBParams
 }
@@ -43,7 +43,7 @@ type LoggerFacade struct {
 	isDBRecord bool
 }
 
-func NewLoggerFacade(srv *config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) (*LoggerFacade, error) {
+func NewLoggerFacade(srv config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) (*LoggerFacade, error) {
 
 	dbLogger, err := NewTransactionLoggerFactory(srv, dbLoggerActive, postgresConfig).Start()
 
@@ -65,7 +65,7 @@ func (lf *LoggerFacade) WriteDelete(key string) {
 	}
 }
 
-func NewTransactionLoggerFactory(srv *config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) *TransactionLoggerFactory {
+func NewTransactionLoggerFactory(srv config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) *TransactionLoggerFactory {
 	return &TransactionLoggerFactory{
 		services:       srv,
 		dbLoggerActive: dbLoggerActive,
