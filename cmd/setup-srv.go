@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/djedjethai/generation/pkg/config"
-	"github.com/djedjethai/generation/pkg/observability"
+	"github.com/djedjethai/generation/internal/config"
+	"github.com/djedjethai/generation/internal/observability"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"

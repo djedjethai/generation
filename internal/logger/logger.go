@@ -2,7 +2,7 @@ package logger
 
 import (
 	"fmt"
-	"github.com/djedjethai/generation/pkg/config"
+	"github.com/djedjethai/generation/internal/config"
 	"golang.org/x/net/context"
 	"log"
 )

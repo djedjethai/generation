@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/djedjethai/generation/pkg/observability"
-	"github.com/djedjethai/generation/pkg/storage"
+	"github.com/djedjethai/generation/internal/observability"
+	"github.com/djedjethai/generation/internal/storage"
 )
 
 // run: go generate ./...

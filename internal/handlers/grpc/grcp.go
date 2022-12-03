@@ -4,8 +4,8 @@ import (
 	"context"
 
 	pb "github.com/djedjethai/generation/api/v1/keyvalue"
-	"github.com/djedjethai/generation/pkg/config"
-	"github.com/djedjethai/generation/pkg/logger"
+	"github.com/djedjethai/generation/internal/config"
+	"github.com/djedjethai/generation/internal/logger"
 	"google.golang.org/grpc"
 )
 

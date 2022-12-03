@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/djedjethai/generation/pkg/deleter"
-	"github.com/djedjethai/generation/pkg/getter"
-	"github.com/djedjethai/generation/pkg/setter"
+	"github.com/djedjethai/generation/internal/deleter"
+	"github.com/djedjethai/generation/internal/getter"
+	"github.com/djedjethai/generation/internal/setter"
 )
 
 type Services struct {

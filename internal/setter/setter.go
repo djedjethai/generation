@@ -2,8 +2,8 @@ package setter
 
 import (
 	"context"
-	"github.com/djedjethai/generation/pkg/observability"
-	"github.com/djedjethai/generation/pkg/storage"
+	"github.com/djedjethai/generation/internal/observability"
+	"github.com/djedjethai/generation/internal/storage"
 	"go.opentelemetry.io/otel/label"
 )
 

@@ -3,11 +3,11 @@ package rest
 import (
 	"testing"
 
-	"github.com/djedjethai/generation/pkg/config"
-	"github.com/djedjethai/generation/pkg/logger"
-	"github.com/djedjethai/generation/pkg/mocks/deleter"
-	"github.com/djedjethai/generation/pkg/mocks/getter"
-	"github.com/djedjethai/generation/pkg/mocks/setter"
+	"github.com/djedjethai/generation/internal/config"
+	"github.com/djedjethai/generation/internal/logger"
+	"github.com/djedjethai/generation/internal/mocks/deleter"
+	"github.com/djedjethai/generation/internal/mocks/getter"
+	"github.com/djedjethai/generation/internal/mocks/setter"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 )
