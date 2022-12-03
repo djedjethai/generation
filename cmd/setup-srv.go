@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/djedjethai/generation/internal/agent"
 	"github.com/djedjethai/generation/internal/config"
 	"github.com/djedjethai/generation/internal/observability"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
+	"strconv"
 	"time"
 	// "go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
@@ -34,7 +36,8 @@ var rootCmd = &cobra.Command{
 	Run:  flagsFunc,
 }
 var jaegerEndpoint string
-var encryptK string
+
+// var encryptK string
 var shards int
 var itemsPerShard int
 var fileLoggerActive bool
@@ -47,16 +50,14 @@ var requests metric.Int64Counter
 var appName string
 var serviceName string
 
-func setupSrv() (config.Config, observability.Observability, config.PostgresDBParams, error) {
+func setupSrv() (agent.Config, error) {
 
-	var cfg config.Config
-	var obs observability.Observability
-	var postgresConfig = config.PostgresDBParams{}
+	var cfg agent.Config
 
 	// configs from flags
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)
-		return cfg, obs, postgresConfig, err
+		return cfg, err
 		// os.Exit(1)
 	}
 
@@ -74,8 +75,10 @@ func setupSrv() (config.Config, observability.Observability, config.PostgresDBPa
 	appName = app_name
 	serviceName = service_name
 
-	cfg = config.Config{
-		EncryptKEY:       encryptK,
+	portGRPC, _ := strconv.Atoi(port_grpc)
+
+	cfg = agent.Config{
+		// EncryptKEY:       encryptK,
 		FileLoggerActive: fileLoggerActive,
 		DBLoggerActive:   dbLoggerActive,
 		Shards:           shards,
@@ -84,19 +87,20 @@ func setupSrv() (config.Config, observability.Observability, config.PostgresDBPa
 		IsMetrics:        isMetrics,
 		JaegerEndpoint:   jaegerEndpoint,
 		Port:             port,
-		PortGRPC:         port_grpc,
+		PortGRPC:         portGRPC,
 		Protocol:         protocol,
 	}
 
 	fmt.Println("see config: ", cfg)
 
-	obs = observability.Observability{
+	obs := observability.Observability{
 		Requests:    &requests,
 		Labels:      labels,
 		IsTracing:   isTracing,
 		IsMetrics:   isMetrics,
 		ServiceName: serviceName,
 	}
+	cfg.Observability = obs
 
 	srvLog := observability.NewSrvLogger(logMode)
 	obs.Logger = srvLog
@@ -123,14 +127,16 @@ func setupSrv() (config.Config, observability.Observability, config.PostgresDBPa
 
 	// set logger
 	if cfg.DBLoggerActive {
+		var postgresConfig = config.PostgresDBParams{}
 		// postgresConfig.Host = "localhost"
 		postgresConfig.Host = "postgres" // in the docker-compose network
 		postgresConfig.DbName = "transactions"
 		postgresConfig.User = "postgres"
 		postgresConfig.Password = "password"
+		cfg.PostgresParams = postgresConfig
 	}
 
-	return cfg, obs, postgresConfig, nil
+	return cfg, nil
 }
 
 func setVarEnv(protocol, port, port_grpc, app_name, service_name *string) {
@@ -138,10 +144,10 @@ func setVarEnv(protocol, port, port_grpc, app_name, service_name *string) {
 		*protocol = "http"
 	}
 	if len(*port) == 0 && *protocol == "http" {
-		*port = ":8080"
+		*port = "8080"
 	}
 	if len(*port_grpc) == 0 && *protocol == "grpc" {
-		*port_grpc = ":50051"
+		*port_grpc = "50051"
 	}
 	if len(*app_name) == 0 {
 		*app_name = "golru"
@@ -153,7 +159,7 @@ func setVarEnv(protocol, port, port_grpc, app_name, service_name *string) {
 
 func init() {
 	rootCmd.Flags().StringVarP(&jaegerEndpoint, "jaeger", "j", "http://jaeger:14268/api/traces", "the Jaeger end point to connect")
-	rootCmd.Flags().StringVarP(&encryptK, "encryptK", "e", "HFrdn79ljrjLDZHlV1t+BdxHRFf5", "an encoding key to encrypt data to file logs")
+	// rootCmd.Flags().StringVarP(&encryptK, "encryptK", "e", "HFrdn79ljrjLDZHlV1t+BdxHRFf5", "an encoding key to encrypt data to file logs")
 	rootCmd.Flags().IntVarP(&shards, "shards", "s", 2, "number of shards")
 	rootCmd.Flags().IntVarP(&itemsPerShard, "itemPerShard", "i", 10, "number of shards")
 	rootCmd.Flags().BoolVarP(&dbLoggerActive, "dbLogger", "d", false, "enable the database logging")
@@ -164,7 +170,7 @@ func init() {
 
 func flagsFunc(cmd *cobra.Command, args []string) {
 	fmt.Println("Jaeger endpoint:", jaegerEndpoint)
-	fmt.Println("Encryption key:", encryptK)
+	// fmt.Println("Encryption key:", encryptK)
 	fmt.Println("Shards:", shards)
 	fmt.Println("Items per shard:", itemsPerShard)
 	fmt.Println("Is db logger enabled:", dbLoggerActive)
