@@ -2,10 +2,12 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	pb "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/internal/config"
 	"github.com/djedjethai/generation/internal/logger"
+	"github.com/djedjethai/generation/internal/models"
 	"google.golang.org/grpc"
 )
 
@@ -40,9 +42,10 @@ func newgrpcserver(services *config.Services, loggerFacade *logger.LoggerFacade)
 func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
 	// TODO
 
-	err := s.Services.Setter.Set(ctx, r.Key, []byte(r.Value))
+	// fmt.Println("seeee grrr: ", r.Records.Key)
+	err := s.Services.Setter.Set(ctx, r.Records.Key, []byte(r.Records.Value))
 	if err == nil {
-		s.LoggerFacade.WriteSet(string(r.Key), string(r.Value))
+		s.LoggerFacade.WriteSet(string(r.Records.Key), string(r.Records.Value))
 	}
 
 	return &pb.PutResponse{}, err
@@ -68,4 +71,36 @@ func (s *Server) Delete(ctx context.Context, r *pb.DeleteRequest) (*pb.DeleteRes
 	}
 
 	return &pb.DeleteResponse{}, err
+}
+
+func (s *Server) GetKeysValuesStream(r *pb.Empty, stream pb.KeyValue_GetKeysValuesStreamServer) error {
+	// get keys
+	ctx := context.Background()
+
+	kv := make(chan models.KeysValues, 10)
+
+	for {
+		select {
+		case <-stream.Context().Done():
+			return nil
+		default:
+			err := s.Services.Getter.GetKeysValues(ctx, kv)
+			if err != nil {
+				return err
+			}
+
+			for v := range kv {
+				if err := stream.Send(&pb.GetRecords{
+					Records: &pb.Records{
+						Key:   v.Key,
+						Value: v.Value,
+					},
+				}); err != nil {
+					fmt.Println("in the errrr: ", err)
+					return err
+				}
+			}
+			return nil
+		}
+	}
 }

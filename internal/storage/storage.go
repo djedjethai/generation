@@ -3,9 +3,14 @@ package storage
 import (
 	"context"
 	"errors"
+	"fmt"
+
 	// "fmt"
-	"github.com/djedjethai/generation/internal/observability"
 	"sync"
+
+	// "github.com/djedjethai/generation/internal/config"
+	"github.com/djedjethai/generation/internal/models"
+	"github.com/djedjethai/generation/internal/observability"
 )
 
 var ErrorNoSuchKey = errors.New("no such key")
@@ -15,6 +20,7 @@ type StorageRepo interface {
 	Get(context.Context, string) (interface{}, error)
 	Keys(context.Context) []string
 	Delete(context.Context, string, *Shard) error
+	KeysValues(context.Context, chan models.KeysValues) error
 }
 
 type Shard struct {
@@ -191,4 +197,43 @@ func (m ShardedMap) Keys(ctx context.Context) []string {
 	wg.Wait()
 
 	return keys
+}
+
+// establish lock(concurrently) on all the table to get all the keys
+func (m ShardedMap) KeysValues(ctx context.Context, kv chan models.KeysValues) error {
+
+	teardown := m.obs.CarryOnTrace(ctx, "StorageKeysValues")
+	defer teardown()
+
+	fmt.Println("storage print ............... ")
+	// mutex := sync.Mutex{} // Mutex for write safety to keys
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(m.shd))
+
+	for _, shard := range m.shd { // Run a goroutine for each slice
+		go func(s *Shard) {
+			s.RLock()
+
+			for key := range s.m {
+				// mutex.Lock()
+				fmt.Println("storage print ..: ", key)
+
+				nd, _ := s.m[key]
+
+				fmt.Println("storage print valll ..: ", nd)
+
+				kv <- models.KeysValues{key, nd.val}
+				// mutex.Unlock()
+			}
+
+			s.RUnlock()
+			wg.Done()
+
+		}(shard)
+	}
+
+	wg.Wait()
+	close(kv)
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/djedjethai/generation/internal/models"
 	"github.com/djedjethai/generation/internal/observability"
 	"github.com/djedjethai/generation/internal/storage"
 )
@@ -14,6 +15,7 @@ import (
 type Getter interface {
 	Get(context.Context, string) (interface{}, error)
 	GetKeys(context.Context) []string
+	GetKeysValues(context.Context, chan models.KeysValues) error
 }
 
 type getter struct {
@@ -62,4 +64,8 @@ func (s *getter) GetKeys(ctx context.Context) []string {
 	s.obs.Logger.Debug("Getter/Get()", "executed successfully")
 
 	return keys
+}
+
+func (s *getter) GetKeysValues(ctx context.Context, kv chan models.KeysValues) error {
+	return s.st.KeysValues(ctx, kv)
 }

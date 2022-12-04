@@ -89,8 +89,10 @@ func TestSet(t *testing.T) {
 	want := &pb.PutResponse{}
 
 	resp, err := cl.Put(ctx, &pb.PutRequest{
-		Key:   "key",
-		Value: "value",
+		Records: &pb.Records{
+			Key:   "key",
+			Value: "value",
+		},
 	})
 	require.NoError(t, err)
 
@@ -104,8 +106,10 @@ func TestGet(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := cl.Put(ctx, &pb.PutRequest{
-		Key:   "key",
-		Value: "value",
+		Records: &pb.Records{
+			Key:   "key",
+			Value: "value",
+		},
 	})
 	require.NoError(t, err)
 
@@ -128,14 +132,18 @@ func TestGetKeys(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := cl.Put(ctx, &pb.PutRequest{
-		Key:   "key",
-		Value: "value",
+		Records: &pb.Records{
+			Key:   "key",
+			Value: "value",
+		},
 	})
 	require.NoError(t, err)
 
 	_, err = cl.Put(ctx, &pb.PutRequest{
-		Key:   "key1",
-		Value: "value1",
+		Records: &pb.Records{
+			Key:   "key1",
+			Value: "value1",
+		},
 	})
 	require.NoError(t, err)
 
@@ -156,8 +164,10 @@ func TestDelete(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := cl.Put(ctx, &pb.PutRequest{
-		Key:   "key",
-		Value: "value",
+		Records: &pb.Records{
+			Key:   "key",
+			Value: "value",
+		},
 	})
 	require.NoError(t, err)
 

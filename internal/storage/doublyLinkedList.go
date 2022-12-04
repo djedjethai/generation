@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	// "math"
 	"sync"
 )
 
@@ -157,7 +158,7 @@ func (d *dll) removeNode(nd *node) *node {
 	return nd
 }
 
-// useless for now but keep it for later in case...
+// // useless for now but let see for later
 // func (d *dll) getNode(key string) *node {
 // 	ns := d.head
 // 	ne := d.tail
