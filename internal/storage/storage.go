@@ -3,8 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"fmt"
-
 	// "fmt"
 	"sync"
 
@@ -199,14 +197,12 @@ func (m ShardedMap) Keys(ctx context.Context) []string {
 	return keys
 }
 
-// establish lock(concurrently) on all the table to get all the keys
+// establish lock(concurrently) on all the table to get all the keys,
+// and each routine return keys-values through the channel
 func (m ShardedMap) KeysValues(ctx context.Context, kv chan models.KeysValues) error {
 
 	teardown := m.obs.CarryOnTrace(ctx, "StorageKeysValues")
 	defer teardown()
-
-	fmt.Println("storage print ............... ")
-	// mutex := sync.Mutex{} // Mutex for write safety to keys
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(m.shd))
@@ -216,15 +212,8 @@ func (m ShardedMap) KeysValues(ctx context.Context, kv chan models.KeysValues) e
 			s.RLock()
 
 			for key := range s.m {
-				// mutex.Lock()
-				fmt.Println("storage print ..: ", key)
-
 				nd, _ := s.m[key]
-
-				fmt.Println("storage print valll ..: ", nd)
-
 				kv <- models.KeysValues{key, nd.val}
-				// mutex.Unlock()
 			}
 
 			s.RUnlock()

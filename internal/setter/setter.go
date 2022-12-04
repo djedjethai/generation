@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/label"
 )
 
-//go:generate mockgen -destination=../mocks/setter/mockSetter.go -package=setter github.com/djedjethai/generation/pkg/setter Setter
+//go:generate mockgen -destination=../mocks/setter/mockSetter.go -package=setter github.com/djedjethai/generation/internal/setter Setter
 type Setter interface {
 	Set(context.Context, string, []byte) error
 }

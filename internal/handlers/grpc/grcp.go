@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"fmt"
+	// "fmt"
 
 	pb "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/internal/config"
@@ -77,17 +77,19 @@ func (s *Server) GetKeysValuesStream(r *pb.Empty, stream pb.KeyValue_GetKeysValu
 	// get keys
 	ctx := context.Background()
 
-	kv := make(chan models.KeysValues, 10)
+	kv := make(chan models.KeysValues)
 
 	for {
 		select {
 		case <-stream.Context().Done():
 			return nil
 		default:
-			err := s.Services.Getter.GetKeysValues(ctx, kv)
-			if err != nil {
-				return err
-			}
+			go func() {
+				err := s.Services.Getter.GetKeysValues(ctx, kv)
+				if err != nil {
+					// return err
+				}
+			}()
 
 			for v := range kv {
 				if err := stream.Send(&pb.GetRecords{
@@ -96,7 +98,6 @@ func (s *Server) GetKeysValuesStream(r *pb.Empty, stream pb.KeyValue_GetKeysValu
 						Value: v.Value,
 					},
 				}); err != nil {
-					fmt.Println("in the errrr: ", err)
 					return err
 				}
 			}

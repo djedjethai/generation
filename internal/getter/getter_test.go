@@ -15,9 +15,9 @@ func setup() {
 
 	obs := observability.Observability{}
 
-	storage := storage.NewMockedShardedMap(1, 0)
+	str := storage.NewMockedShardedMap(1, 0)
 
-	getterMocked = getter{storage, obs}
+	getterMocked = getter{str, obs}
 }
 
 func Test_get_return_a_value_and_no_error(t *testing.T) {

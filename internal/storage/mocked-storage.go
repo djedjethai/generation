@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"github.com/djedjethai/generation/internal/models"
 )
 
 type mShardedMap struct {
@@ -40,4 +41,9 @@ func (ms mShardedMap) Keys(ctx context.Context) []string {
 	var str []string
 
 	return str
+}
+
+func (ms mShardedMap) KeysValues(ctx context.Context, kv chan models.KeysValues) error {
+
+	return nil
 }

@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/label"
 )
 
-//go:generate mockgen -destination=../mocks/deleter/mockDeleter.go -package=deleter github.com/djedjethai/generation/pkg/deleter Deleter
+//go:generate mockgen -destination=../mocks/deleter/mockDeleter.go -package=deleter github.com/djedjethai/generation/internal/deleter Deleter
 type Deleter interface {
 	Delete(context.Context, string) error
 }

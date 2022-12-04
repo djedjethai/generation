@@ -10,8 +10,8 @@ import (
 )
 
 // run: go generate ./...
-//
-//go:generate mockgen -destination=../mocks/getter/mockGetter.go -package=getter github.com/djedjethai/generation/pkg/getter Getter
+
+//go:generate mockgen -destination=../mocks/getter/mockGetter.go -package=getter github.com/djedjethai/generation/internal/getter Getter
 type Getter interface {
 	Get(context.Context, string) (interface{}, error)
 	GetKeys(context.Context) []string
