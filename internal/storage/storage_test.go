@@ -70,25 +70,21 @@ func TestGetKeysValues(t *testing.T) {
 	shardedMap.Set(ctx, "key2", "val2")
 	shardedMap.Set(ctx, "key3", "val3")
 
-	kv := make(chan models.KeysValues)
+	kv := make(chan models.KeysValues, 4)
 
-	go func() {
-		err := shardedMap.KeysValues(ctx, kv)
-		if err != nil {
-			fmt.Println("err: ", err)
-		}
-	}()
+	err := shardedMap.KeysValues(ctx, kv)
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
 
-	var resKeys []string
-	var resValues []string
+	var res = make(map[string]string)
 	for v := range kv {
 		t.Run(v.Key, func(t *testing.T) {
-			resKeys = append(resKeys, v.Key)
-			resValues = append(resValues, v.Value)
+			res[v.Key] = v.Value
 		})
 	}
 
-	if len(resKeys) != 3 || len(resValues) != 3 {
+	if res["key1"] != "val1" || res["key2"] != "val2" || res["key3"] != "val3" {
 		t.Error("err in store TestGetKeysValues, 3 key-value pairs should be returned")
 	}
 }
@@ -121,22 +117,22 @@ func TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard(t *testing.T) 
 }
 
 // make sure the fixed size is respected when many shards and a single item for each shard
-// func TestStorageKeepTheSettedSizeManyShardAnsOneItemPerShard(t *testing.T) {
-//
-// 	ctx := context.Background()
-// 	obs := observability.Observability{}
-//
-// 	sm := NewShardedMap(2, 1, obs)
-// 	sm.Set(ctx, "key1", "val1")
-// 	sm.Set(ctx, "key2", "val2")
-// 	sm.Set(ctx, "key3", "val3")
-// 	sm.Set(ctx, "key4", "val4")
-//
-// 	ks := sm.Keys(ctx)
-// 	if len(ks) != 2 || ks[0] != "key4" || ks[1] != "key3" {
-// 		t.Error("err in store TestStorageKeepTheSettedSizeManyShardAnsOneItemPerShard")
-// 	}
-// }
+func TestStorageKeepTheSettedSizeManyShardAnsOneItemPerShard(t *testing.T) {
+
+	ctx := context.Background()
+	obs := observability.Observability{}
+
+	sm := NewShardedMap(2, 1, obs)
+	sm.Set(ctx, "key1", "val1")
+	sm.Set(ctx, "key2", "val2")
+	sm.Set(ctx, "key3", "val3")
+	sm.Set(ctx, "key4", "val4")
+
+	ks := sm.Keys(ctx)
+	if len(ks) != 2 || ks[0] != "key4" || ks[1] != "key3" {
+		t.Error("err in store TestStorageKeepTheSettedSizeManyShardAnsOneItemPerShard")
+	}
+}
 
 // make sure a key won't be repeated twice
 func TestStorageDoNotStoreTheSameKeyTwice(t *testing.T) {

@@ -45,5 +45,11 @@ func (ms mShardedMap) Keys(ctx context.Context) []string {
 
 func (ms mShardedMap) KeysValues(ctx context.Context, kv chan models.KeysValues) error {
 
+	kv <- models.KeysValues{"key1", "val1"}
+	kv <- models.KeysValues{"key2", "val2"}
+	kv <- models.KeysValues{"key3", "val3"}
+
+	close(kv)
+
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/djedjethai/generation/internal/models"
 	"github.com/djedjethai/generation/internal/observability"
 	"github.com/djedjethai/generation/internal/storage"
 )
@@ -15,7 +16,7 @@ func setup() {
 
 	obs := observability.Observability{}
 
-	str := storage.NewMockedShardedMap(1, 0)
+	str := storage.NewMockedShardedMap(1, 5)
 
 	getterMocked = getter{str, obs}
 }
@@ -70,4 +71,24 @@ func Test_keys_return_an_array_of_keys(t *testing.T) {
 	if rt.Elem().String() != "string" {
 		t.Error("test getter.GetKeys() should return strings")
 	}
+}
+
+func Test_GetkeysValues_return_a_stream_modelsKeysValues(t *testing.T) {
+	setup()
+
+	kv := make(chan models.KeysValues, 5)
+
+	ctx := context.Background()
+
+	_ = getterMocked.GetKeysValues(ctx, kv)
+
+	res := make(map[string]string)
+	for v := range kv {
+		res[v.Key] = v.Value
+	}
+
+	if res["key1"] != "val1" || res["key2"] != "val2" || res["key3"] != "val3" {
+		t.Error("err in getterTest TestGetKeysValues, 3 key-value pairs should be returned")
+	}
+
 }
