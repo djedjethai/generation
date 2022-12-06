@@ -2,7 +2,7 @@ package observability
 
 import (
 	"context"
-	"fmt"
+	// "fmt"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/metric"
@@ -24,18 +24,13 @@ type Observability struct {
 }
 
 func (o *Observability) StartTrace(ctx context.Context, traceName string) (context.Context, func()) {
-	fmt.Println("in observ")
 	if o.IsTracing {
-		fmt.Println("in observ1")
 		// TODO bug here
 		ctx1, sp := o.Tracer.Start(context.Background(), traceName)
-		fmt.Println("in observ2")
 		return ctx1, func() {
 			defer sp.End()
 		}
 	}
-
-	fmt.Println("in observ3")
 
 	return ctx, func() {}
 }

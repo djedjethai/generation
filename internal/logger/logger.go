@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"github.com/djedjethai/generation/internal/config"
 	"golang.org/x/net/context"
 	"log"
@@ -43,11 +42,9 @@ type LoggerFacade struct {
 	isDBRecord bool
 }
 
-func NewLoggerFacade(srv *config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) (*LoggerFacade, error) {
+func NewLoggerFacade(srv config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) (*LoggerFacade, error) {
 
-	dbLogger, err := NewTransactionLoggerFactory(srv, dbLoggerActive, postgresConfig).Start()
-
-	fmt.Println("in logger NewLoggerFacade")
+	dbLogger, err := NewTransactionLoggerFactory(&srv, dbLoggerActive, postgresConfig).Start()
 
 	return &LoggerFacade{
 		dbLogger:   dbLogger,
@@ -79,7 +76,7 @@ func (tlf *TransactionLoggerFactory) Start() (TransactionLogger, error) {
 	var err error
 	var dbLogger TransactionLogger
 
-	fmt.Println("see postgres config: ", tlf.postgresConfig)
+	// fmt.Println("see postgres config: ", tlf.postgresConfig)
 
 	if tlf.dbLoggerActive {
 		dbLogger, err = NewPostgresTransactionLogger(tlf.postgresConfig)
@@ -91,7 +88,6 @@ func (tlf *TransactionLoggerFactory) Start() (TransactionLogger, error) {
 		if err != nil {
 			log.Println("Err when run PostgresTransactionLogger", err)
 		}
-		fmt.Println("tame mmememe la puuute okkk")
 	}
 
 	return dbLogger, err
@@ -101,33 +97,23 @@ func (tlf *TransactionLoggerFactory) runner(logger TransactionLogger) error {
 	// TODO here add ctx
 	ctx := context.Background()
 
-	fmt.Println("tame mmememe")
 	var err error
 	events, errors := logger.ReadEvents()
 	e, ok := Event{}, true
 
-	fmt.Println("tame mmememe2")
 	for ok {
 		select {
 		case err, ok = <-errors:
 
-			fmt.Println("tame mmememe6", err)
 		case e, ok = <-events:
 			switch e.EventType {
 			case EventDelete:
-				fmt.Println("tame mmememe4")
 				err = tlf.services.Deleter.Delete(ctx, e.Key)
-				fmt.Println("tame mmememe44")
 			case EventPut:
-				fmt.Println("tame mmememe5")
 				err = tlf.services.Setter.Set(ctx, e.Key, []byte(e.Value))
-				fmt.Println("tame mmememe55")
 			}
-
 		}
 	}
-
-	fmt.Println("tame mmememe3")
 
 	logger.Run()
 

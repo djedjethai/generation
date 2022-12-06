@@ -20,10 +20,10 @@ type Getter interface {
 
 type getter struct {
 	st  storage.StorageRepo
-	obs observability.Observability
+	obs *observability.Observability
 }
 
-func NewGetter(s storage.ShardedMap, observ observability.Observability) Getter {
+func NewGetter(s storage.ShardedMap, observ *observability.Observability) Getter {
 	return &getter{
 		st:  s,
 		obs: observ,

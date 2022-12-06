@@ -70,7 +70,7 @@ func setupSrv() (agent.Config, error) {
 	// TODO add this varenv
 	_ = os.Getenv("DATABASE_HOST")
 
-	protocol = "grpc" // uncomment to switch to grpc
+	// protocol = "grpc" // uncomment to switch to grpc
 
 	setVarEnv(&protocol, &port, &port_grpc, &app_name, &service_name)
 
@@ -102,7 +102,7 @@ func setupSrv() (agent.Config, error) {
 		IsMetrics:   isMetrics,
 		ServiceName: serviceName,
 	}
-	cfg.Observability = obs
+	cfg.Observability = &obs
 
 	srvLog := observability.NewSrvLogger(logMode)
 	obs.Logger = srvLog

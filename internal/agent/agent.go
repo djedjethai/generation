@@ -8,6 +8,7 @@ import (
 	"github.com/djedjethai/generation/internal/deleter"
 	"github.com/djedjethai/generation/internal/getter"
 	"github.com/djedjethai/generation/internal/handlers/grpc"
+	"github.com/djedjethai/generation/internal/handlers/rest"
 	"github.com/djedjethai/generation/internal/logger"
 	"github.com/djedjethai/generation/internal/observability"
 	"github.com/djedjethai/generation/internal/setter"
@@ -15,6 +16,7 @@ import (
 	gglGrpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"net"
+	"net/http"
 	"sync"
 )
 
@@ -47,7 +49,7 @@ type Config struct {
 	StartJoinAddrs  []string
 	//
 	ShardedMap     storage.ShardedMap
-	Observability  observability.Observability
+	Observability  *observability.Observability
 	PostgresParams config.PostgresDBParams
 	Services       config.Services
 	LoggerFacade   *logger.LoggerFacade
@@ -61,15 +63,15 @@ func (c Config) RPCAddr() (string, error) {
 	return fmt.Sprintf("%s:%d", host, c.PortGRPC), nil
 }
 
-func New(cfg Config) (*Agent, error) {
+func New(cfg Config) (*Agent, func(), error) {
 	a := &Agent{
 		config: cfg,
 	}
-	fmt.Println("the aaa: ", a)
+
 	// set the storage
 	err := a.setupStorage(cfg.Shards, cfg.ItemsPerShard)
 	if err != nil {
-		return a, err
+		return a, func() {}, err
 	}
 
 	// set services
@@ -78,16 +80,15 @@ func New(cfg Config) (*Agent, error) {
 	// set loggerFacade
 	err = a.setupLoggerFacade()
 	if err != nil {
-		return a, err
+		return a, func() {}, err
 	}
 
 	// set servers
-	// TODO selection grpc or http should be here
-	_, err = a.setupServers()
+	fn, err := a.setupServers()
 	if err != nil {
-		return a, err
+		return a, func() {}, err
 	}
-	return a, nil
+	return a, fn, nil
 }
 
 func (a *Agent) setupStorage(shards, itemsPerShard int) error {
@@ -110,18 +111,27 @@ func (a *Agent) setupServices() {
 
 func (a *Agent) setupLoggerFacade() error {
 	// TODO see the story of *services or not....
-	lgrF, err := logger.NewLoggerFacade(&a.config.Services, a.config.DBLoggerActive, a.config.PostgresParams)
+	lgrF, err := logger.NewLoggerFacade(a.config.Services, a.config.DBLoggerActive, a.config.PostgresParams)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("in agent after NewLoggerFacade")
 
 	a.config.LoggerFacade = lgrF
 	return nil
 }
 
 func (a *Agent) setupServers() (func(), error) {
+
+	if a.config.Protocol == "grpc" {
+		return a.runGRPC()
+	} else if a.config.Protocol == "http" {
+		return a.runHTTP()
+	} else {
+		return func() {}, errors.New("Error start server, protocol is not defined")
+	}
+}
+
+func (a *Agent) runGRPC() (func(), error) {
 	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "127.0.0.1", a.config.PortGRPC))
 	if err != nil {
 		return func() {}, err
@@ -150,4 +160,17 @@ func (a *Agent) setupServers() (func(), error) {
 		defer server.Stop()
 		defer l.Close()
 	}, nil
+
+}
+
+func (a *Agent) runHTTP() (func(), error) {
+	hdl := rest.NewHandler(a.config.Services, a.config.LoggerFacade)
+	router := hdl.Multiplex()
+
+	fmt.Printf("***** Service listening on port %s *****", a.config.Port)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", a.config.Port), router)
+	if err != nil {
+		return func() {}, err
+	}
+	return func() {}, nil
 }

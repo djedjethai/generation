@@ -14,10 +14,10 @@ type Deleter interface {
 
 type deleter struct {
 	st  storage.StorageRepo
-	obs observability.Observability
+	obs *observability.Observability
 }
 
-func NewDeleter(s storage.ShardedMap, observ observability.Observability) Deleter {
+func NewDeleter(s storage.ShardedMap, observ *observability.Observability) Deleter {
 	// run the query: golru_requests_total{deleter="delete"}
 	lb := label.Key("deleter").String("delete")
 	observ.Labels = append(observ.Labels, lb)

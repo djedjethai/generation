@@ -34,10 +34,10 @@ type Shard struct {
 // type ShardedMap []*Shard
 type ShardedMap struct {
 	shd []*Shard
-	obs observability.Observability
+	obs *observability.Observability
 }
 
-func NewShardedMap(nShard, maxLgt int, observ observability.Observability) ShardedMap {
+func NewShardedMap(nShard, maxLgt int, observ *observability.Observability) ShardedMap {
 	shards := make([]*Shard, nShard)
 
 	for i := 0; i < nShard; i++ {

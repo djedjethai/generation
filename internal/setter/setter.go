@@ -16,10 +16,10 @@ type Setter interface {
 
 type setter struct {
 	st  storage.StorageRepo
-	obs observability.Observability
+	obs *observability.Observability
 }
 
-func NewSetter(s storage.ShardedMap, observ observability.Observability) Setter {
+func NewSetter(s storage.ShardedMap, observ *observability.Observability) Setter {
 	lb := label.Key("setter").String("set")
 	observ.Labels = append(observ.Labels, lb)
 	return &setter{
