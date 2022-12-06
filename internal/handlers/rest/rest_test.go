@@ -30,7 +30,7 @@ func setup(t *testing.T) func() {
 
 	lf, _ := logger.NewLoggerFacade(svc, false, config.PostgresDBParams{})
 
-	handler = NewHandler(&svc, lf)
+	handler = NewHandler(svc, lf)
 
 	// router = mux.NewRouter()
 	router = handler.Multiplex().(*mux.Router)

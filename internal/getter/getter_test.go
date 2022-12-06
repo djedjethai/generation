@@ -87,7 +87,7 @@ func Test_GetkeysValues_return_a_stream_modelsKeysValues(t *testing.T) {
 		res[v.Key] = v.Value
 	}
 
-	if res["key1"] != "val1" || res["key2"] != "val2" || res["key3"] != "val3" {
+	if res["key1"] != "value1" || res["key2"] != "value2" || res["key3"] != "value3" {
 		t.Error("err in getterTest TestGetKeysValues, 3 key-value pairs should be returned")
 	}
 

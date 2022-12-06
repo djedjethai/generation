@@ -65,7 +65,7 @@ func setupTest(t *testing.T) (pb.KeyValueClient, func()) {
 	serverCreds := credentials.NewTLS(serverTLSConfig)
 	require.NoError(t, err)
 
-	s, err := NewGRPCServer(&srv, loggerFacade, gglGrpc.Creds(serverCreds))
+	s, err := NewGRPCServer(srv, loggerFacade, gglGrpc.Creds(serverCreds))
 	require.NoError(t, err)
 
 	go func() {
@@ -183,4 +183,58 @@ func TestDelete(t *testing.T) {
 
 	require.Equal(t, reflect.TypeOf(want), reflect.TypeOf(resp))
 	require.Equal(t, len(resp1.Keys), 0)
+}
+
+func TestGetKeysValuesStream(t *testing.T) {
+	cl, teardown := setupTest(t)
+	defer teardown()
+
+	ctx := context.Background()
+
+	_, err := cl.Put(ctx, &pb.PutRequest{
+		Records: &pb.Records{
+			Key:   "key1",
+			Value: "value1",
+		},
+	})
+	require.NoError(t, err)
+	_, err = cl.Put(ctx, &pb.PutRequest{
+		Records: &pb.Records{
+			Key:   "key2",
+			Value: "value2",
+		},
+	})
+	require.NoError(t, err)
+	_, err = cl.Put(ctx, &pb.PutRequest{
+		Records: &pb.Records{
+			Key:   "key3",
+			Value: "value3",
+		},
+	})
+	require.NoError(t, err)
+
+	stream, err := cl.GetKeysValuesStream(ctx, &pb.Empty{})
+	require.NoError(t, err)
+
+	for {
+		select {
+		default:
+			res, err := stream.Recv()
+			if err != nil {
+				return
+			}
+			// resp[res.Records.Key] = res.Records.Value
+			if res.Records.Key != "key1" &&
+				res.Records.Key != "key2" &&
+				res.Records.Key != "key3" {
+				t.Error("Test grpc GetKeysValuesStream invalid keys")
+			}
+			if res.Records.Value != "value1" &&
+				res.Records.Value != "value2" &&
+				res.Records.Value != "value3" {
+				t.Error("Test grpc GetKeysValuesStream invalid values")
+			}
+
+		}
+	}
 }

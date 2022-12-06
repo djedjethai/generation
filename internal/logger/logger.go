@@ -32,7 +32,7 @@ type Event struct {
 }
 
 type TransactionLoggerFactory struct {
-	services       config.Services
+	services       *config.Services
 	dbLoggerActive bool
 	postgresConfig config.PostgresDBParams
 }
@@ -43,9 +43,11 @@ type LoggerFacade struct {
 	isDBRecord bool
 }
 
-func NewLoggerFacade(srv config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) (*LoggerFacade, error) {
+func NewLoggerFacade(srv *config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) (*LoggerFacade, error) {
 
 	dbLogger, err := NewTransactionLoggerFactory(srv, dbLoggerActive, postgresConfig).Start()
+
+	fmt.Println("in logger NewLoggerFacade")
 
 	return &LoggerFacade{
 		dbLogger:   dbLogger,
@@ -65,7 +67,7 @@ func (lf *LoggerFacade) WriteDelete(key string) {
 	}
 }
 
-func NewTransactionLoggerFactory(srv config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) *TransactionLoggerFactory {
+func NewTransactionLoggerFactory(srv *config.Services, dbLoggerActive bool, postgresConfig config.PostgresDBParams) *TransactionLoggerFactory {
 	return &TransactionLoggerFactory{
 		services:       srv,
 		dbLoggerActive: dbLoggerActive,
@@ -89,6 +91,7 @@ func (tlf *TransactionLoggerFactory) Start() (TransactionLogger, error) {
 		if err != nil {
 			log.Println("Err when run PostgresTransactionLogger", err)
 		}
+		fmt.Println("tame mmememe la puuute okkk")
 	}
 
 	return dbLogger, err
@@ -98,23 +101,33 @@ func (tlf *TransactionLoggerFactory) runner(logger TransactionLogger) error {
 	// TODO here add ctx
 	ctx := context.Background()
 
+	fmt.Println("tame mmememe")
 	var err error
 	events, errors := logger.ReadEvents()
 	e, ok := Event{}, true
 
+	fmt.Println("tame mmememe2")
 	for ok {
 		select {
 		case err, ok = <-errors:
+
+			fmt.Println("tame mmememe6", err)
 		case e, ok = <-events:
 			switch e.EventType {
 			case EventDelete:
+				fmt.Println("tame mmememe4")
 				err = tlf.services.Deleter.Delete(ctx, e.Key)
+				fmt.Println("tame mmememe44")
 			case EventPut:
+				fmt.Println("tame mmememe5")
 				err = tlf.services.Setter.Set(ctx, e.Key, []byte(e.Value))
+				fmt.Println("tame mmememe55")
 			}
 
 		}
 	}
+
+	fmt.Println("tame mmememe3")
 
 	logger.Run()
 

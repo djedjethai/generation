@@ -57,6 +57,7 @@ func NewPostgresTransactionLogger(config cfg.PostgresDBParams) (TransactionLogge
 			return nil, fmt.Errorf("failed to create table: %w", err)
 		}
 	}
+
 	return logger, nil
 }
 

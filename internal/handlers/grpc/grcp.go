@@ -17,12 +17,12 @@ type Server struct {
 	LoggerFacade *logger.LoggerFacade
 }
 
-func NewGRPCServer(services *config.Services, loggerFacade *logger.LoggerFacade, opts ...grpc.ServerOption) (*grpc.Server, error) {
+func NewGRPCServer(services config.Services, loggerFacade *logger.LoggerFacade, opts ...grpc.ServerOption) (*grpc.Server, error) {
 
 	gsrv := grpc.NewServer(opts...)
 	// gsrv := grpc.NewServer() // uncomment here for no tls
 
-	srv, err := newgrpcserver(services, loggerFacade)
+	srv, err := newgrpcserver(&services, loggerFacade)
 	if err != nil {
 		return nil, err
 	}

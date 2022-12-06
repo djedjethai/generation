@@ -67,6 +67,8 @@ func setupSrv() (agent.Config, error) {
 	protocol := os.Getenv("PROTOCOL")
 	app_name := os.Getenv("APP_NAME")
 	service_name := os.Getenv("SERVICE_NAME")
+	// TODO add this varenv
+	_ = os.Getenv("DATABASE_HOST")
 
 	protocol = "grpc" // uncomment to switch to grpc
 

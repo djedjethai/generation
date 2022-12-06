@@ -49,7 +49,7 @@ type Config struct {
 	ShardedMap     storage.ShardedMap
 	Observability  observability.Observability
 	PostgresParams config.PostgresDBParams
-	Services       *config.Services
+	Services       config.Services
 	LoggerFacade   *logger.LoggerFacade
 }
 
@@ -82,6 +82,7 @@ func New(cfg Config) (*Agent, error) {
 	}
 
 	// set servers
+	// TODO selection grpc or http should be here
 	_, err = a.setupServers()
 	if err != nil {
 		return a, err
@@ -104,15 +105,18 @@ func (a *Agent) setupServices() {
 	getSrv := getter.NewGetter(a.config.ShardedMap, a.config.Observability)
 	delSrv := deleter.NewDeleter(a.config.ShardedMap, a.config.Observability)
 
-	a.config.Services = &config.Services{setSrv, getSrv, delSrv}
+	a.config.Services = config.Services{setSrv, getSrv, delSrv}
 }
 
 func (a *Agent) setupLoggerFacade() error {
 	// TODO see the story of *services or not....
-	lgrF, err := logger.NewLoggerFacade(*a.config.Services, a.config.DBLoggerActive, a.config.PostgresParams)
+	lgrF, err := logger.NewLoggerFacade(&a.config.Services, a.config.DBLoggerActive, a.config.PostgresParams)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("in agent after NewLoggerFacade")
+
 	a.config.LoggerFacade = lgrF
 	return nil
 }

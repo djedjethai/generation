@@ -9,7 +9,7 @@ import (
 )
 
 // test Put
-func TestPut(t *testing.T) {
+func Test_put(t *testing.T) {
 	ctx := context.Background()
 
 	_ = shardedMap.Set(ctx, "test", "put")
@@ -23,7 +23,7 @@ func TestPut(t *testing.T) {
 }
 
 // test Get
-func TestGet(t *testing.T) {
+func Test_get(t *testing.T) {
 
 	ctx := context.Background()
 
@@ -35,7 +35,7 @@ func TestGet(t *testing.T) {
 }
 
 // test get all Keys
-func TestKeys(t *testing.T) {
+func Test_keys(t *testing.T) {
 
 	ctx := context.Background()
 
@@ -48,7 +48,7 @@ func TestKeys(t *testing.T) {
 }
 
 // test delete
-func TestDelete(t *testing.T) {
+func Test_delete(t *testing.T) {
 
 	ctx := context.Background()
 
@@ -62,13 +62,13 @@ func TestDelete(t *testing.T) {
 }
 
 // test getKeysValues
-func TestGetKeysValues(t *testing.T) {
+func Test_get_keys_values(t *testing.T) {
 
 	ctx := context.Background()
 
-	shardedMap.Set(ctx, "key1", "val1")
-	shardedMap.Set(ctx, "key2", "val2")
-	shardedMap.Set(ctx, "key3", "val3")
+	shardedMap.Set(ctx, "key1", "value1")
+	shardedMap.Set(ctx, "key2", "value2")
+	shardedMap.Set(ctx, "key3", "value3")
 
 	kv := make(chan models.KeysValues, 4)
 
@@ -84,13 +84,13 @@ func TestGetKeysValues(t *testing.T) {
 		})
 	}
 
-	if res["key1"] != "val1" || res["key2"] != "val2" || res["key3"] != "val3" {
+	if res["key1"] != "value1" || res["key2"] != "value2" || res["key3"] != "value3" {
 		t.Error("err in store TestGetKeysValues, 3 key-value pairs should be returned")
 	}
 }
 
 // make sure the fixed size is respected when one shard and many items for this shard
-func TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard(t *testing.T) {
+func Test_storage_keep_the_setted_size_with_one_shard_and_many_items_per_shard(t *testing.T) {
 
 	ctx := context.Background()
 	obs := observability.Observability{}
@@ -116,8 +116,9 @@ func TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard(t *testing.T) 
 	}
 }
 
+// TODO look like we have a pb here....
 // make sure the fixed size is respected when many shards and a single item for each shard
-func TestStorageKeepTheSettedSizeManyShardAnsOneItemPerShard(t *testing.T) {
+func Test_storage_keep_the_setted_size_many_shard_and_one_item_per_shard(t *testing.T) {
 
 	ctx := context.Background()
 	obs := observability.Observability{}
@@ -135,7 +136,7 @@ func TestStorageKeepTheSettedSizeManyShardAnsOneItemPerShard(t *testing.T) {
 }
 
 // make sure a key won't be repeated twice
-func TestStorageDoNotStoreTheSameKeyTwice(t *testing.T) {
+func Test_storage_do_not_store_the_same_key_twice(t *testing.T) {
 
 	ctx := context.Background()
 	obs := observability.Observability{}
