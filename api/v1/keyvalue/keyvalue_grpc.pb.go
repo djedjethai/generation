@@ -26,6 +26,7 @@ type KeyValueClient interface {
 	Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*PutResponse, error)
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
 	GetKeys(ctx context.Context, in *GetKeysRequest, opts ...grpc.CallOption) (*GetKeysResponse, error)
+	GetKeysValuesStream(ctx context.Context, in *Empty, opts ...grpc.CallOption) (KeyValue_GetKeysValuesStreamClient, error)
 }
 
 type keyValueClient struct {
@@ -72,6 +73,38 @@ func (c *keyValueClient) GetKeys(ctx context.Context, in *GetKeysRequest, opts .
 	return out, nil
 }
 
+func (c *keyValueClient) GetKeysValuesStream(ctx context.Context, in *Empty, opts ...grpc.CallOption) (KeyValue_GetKeysValuesStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &KeyValue_ServiceDesc.Streams[0], "/KeyValue/GetKeysValuesStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &keyValueGetKeysValuesStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type KeyValue_GetKeysValuesStreamClient interface {
+	Recv() (*GetRecords, error)
+	grpc.ClientStream
+}
+
+type keyValueGetKeysValuesStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *keyValueGetKeysValuesStreamClient) Recv() (*GetRecords, error) {
+	m := new(GetRecords)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // KeyValueServer is the server API for KeyValue service.
 // All implementations must embed UnimplementedKeyValueServer
 // for forward compatibility
@@ -80,6 +113,7 @@ type KeyValueServer interface {
 	Put(context.Context, *PutRequest) (*PutResponse, error)
 	Delete(context.Context, *DeleteRequest) (*DeleteResponse, error)
 	GetKeys(context.Context, *GetKeysRequest) (*GetKeysResponse, error)
+	GetKeysValuesStream(*Empty, KeyValue_GetKeysValuesStreamServer) error
 	mustEmbedUnimplementedKeyValueServer()
 }
 
@@ -98,6 +132,9 @@ func (UnimplementedKeyValueServer) Delete(context.Context, *DeleteRequest) (*Del
 }
 func (UnimplementedKeyValueServer) GetKeys(context.Context, *GetKeysRequest) (*GetKeysResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetKeys not implemented")
+}
+func (UnimplementedKeyValueServer) GetKeysValuesStream(*Empty, KeyValue_GetKeysValuesStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetKeysValuesStream not implemented")
 }
 func (UnimplementedKeyValueServer) mustEmbedUnimplementedKeyValueServer() {}
 
@@ -184,6 +221,27 @@ func _KeyValue_GetKeys_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KeyValue_GetKeysValuesStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(KeyValueServer).GetKeysValuesStream(m, &keyValueGetKeysValuesStreamServer{stream})
+}
+
+type KeyValue_GetKeysValuesStreamServer interface {
+	Send(*GetRecords) error
+	grpc.ServerStream
+}
+
+type keyValueGetKeysValuesStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *keyValueGetKeysValuesStreamServer) Send(m *GetRecords) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // KeyValue_ServiceDesc is the grpc.ServiceDesc for KeyValue service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -208,6 +266,12 @@ var KeyValue_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KeyValue_GetKeys_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetKeysValuesStream",
+			Handler:       _KeyValue_GetKeysValuesStream_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "api/v1/keyvalue/keyvalue.proto",
 }

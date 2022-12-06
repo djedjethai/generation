@@ -2,11 +2,24 @@ syntax = "proto3";
 
 option go_package = "github.com/djedjethai/generation/api/v1/keyvalue";
 
+
 service KeyValue {
 	rpc Get(GetRequest) returns (GetResponse);
 	rpc Put(PutRequest) returns (PutResponse);
 	rpc Delete(DeleteRequest) returns (DeleteResponse);
 	rpc GetKeys(GetKeysRequest) returns (GetKeysResponse);
+	rpc GetKeysValuesStream(Empty) returns (stream GetRecords);
+}
+
+message Empty {}
+
+message Records {
+	string key = 1;
+	string value = 2;
+}
+
+message GetRecords{
+	Records records =1;
 }
 
 message GetRequest {
@@ -24,8 +37,7 @@ message GetKeysResponse{
 }
 
 message PutRequest{
-	string key = 1;
-	string value = 2;
+	Records records = 1;
 }
 
 message PutResponse{}
