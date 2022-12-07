@@ -132,7 +132,9 @@ func (a *Agent) setupServers() (func(), error) {
 }
 
 func (a *Agent) runGRPC() (func(), error) {
-	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "127.0.0.1", a.config.PortGRPC))
+	// l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "127.0.0.1", a.config.PortGRPC))
+	// TODO if run in docker
+	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", a.config.PortGRPC))
 	if err != nil {
 		return func() {}, err
 	}
