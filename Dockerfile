@@ -20,7 +20,13 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o kvs ../cmd
 
 
 # Run container
-FROM scratch
+# FROM scratch
+# 
+# COPY --from=builder /app/bin/kvs .
+# 
+# EXPOSE 8080
+
+FROM alpine:latest
 
 COPY --from=builder /app/bin/kvs .
 
