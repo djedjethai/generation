@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 
 	obs := observability.Observability{}
 
-	shardedMap = NewShardedMap(3, 10, obs)
+	shardedMap = NewShardedMap(3, 10, &obs)
 
 	os.Exit(m.Run())
 }

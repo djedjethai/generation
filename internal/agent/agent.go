@@ -93,7 +93,9 @@ func New(cfg Config) (*Agent, func(), error) {
 
 func (a *Agent) setupStorage(shards, itemsPerShard int) error {
 	if shards > 0 && itemsPerShard > 0 {
+		// TODO replace shardedMap with distributed.go, New
 		shardedMap := storage.NewShardedMap(shards, itemsPerShard, a.config.Observability)
+		// TODO replace ....
 		a.config.ShardedMap = shardedMap
 		return nil
 	} else {

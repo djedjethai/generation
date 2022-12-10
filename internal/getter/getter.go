@@ -13,7 +13,8 @@ import (
 
 //go:generate mockgen -destination=../mocks/getter/mockGetter.go -package=getter github.com/djedjethai/generation/internal/getter Getter
 type Getter interface {
-	Get(context.Context, string) (interface{}, error)
+	// Get(context.Context, string) (interface{}, error)
+	Get(context.Context, string) interface{}
 	GetKeys(context.Context) []string
 	GetKeysValues(context.Context, chan models.KeysValues) error
 }
@@ -30,7 +31,8 @@ func NewGetter(s storage.ShardedMap, observ *observability.Observability) Getter
 	}
 }
 
-func (s *getter) Get(ctx context.Context, key string) (interface{}, error) {
+// func (s *getter) Get(ctx context.Context, key string) (interface{}, error) {
+func (s *getter) Get(ctx context.Context, key string) interface{} {
 
 	s.obs.Logger.Debug("Getter/Get()", "hit func")
 
@@ -42,11 +44,11 @@ func (s *getter) Get(ctx context.Context, key string) (interface{}, error) {
 	value, err := s.st.Get(ctx, key)
 	if err != nil {
 		s.obs.Logger.Warning("Getter/Get() failed", fmt.Sprintf("%v", err))
-		return "", err
+		return err
 	}
 
 	s.obs.Logger.Debug("Getter/Get()", "executed successfully")
-	return value, nil
+	return value
 }
 
 func (s *getter) GetKeys(ctx context.Context) []string {

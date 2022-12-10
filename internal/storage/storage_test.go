@@ -95,7 +95,7 @@ func Test_storage_keep_the_setted_size_with_one_shard_and_many_items_per_shard(t
 	ctx := context.Background()
 	obs := observability.Observability{}
 
-	sm := NewShardedMap(1, 2, obs)
+	sm := NewShardedMap(1, 2, &obs)
 	sm.Set(ctx, "key1", "val1")
 	sm.Set(ctx, "key2", "val2")
 	sm.Set(ctx, "key3", "val3")
@@ -123,7 +123,7 @@ func Test_storage_keep_the_setted_size_many_shard_and_one_item_per_shard(t *test
 	ctx := context.Background()
 	obs := observability.Observability{}
 
-	sm := NewShardedMap(2, 1, obs)
+	sm := NewShardedMap(2, 1, &obs)
 	sm.Set(ctx, "key1", "val1")
 	sm.Set(ctx, "key2", "val2")
 	sm.Set(ctx, "key3", "val3")
@@ -141,7 +141,7 @@ func Test_storage_do_not_store_the_same_key_twice(t *testing.T) {
 	ctx := context.Background()
 	obs := observability.Observability{}
 
-	sm := NewShardedMap(2, 2, obs)
+	sm := NewShardedMap(2, 2, &obs)
 	sm.Set(ctx, "key1", "val1")
 	sm.Set(ctx, "key2", "val2")
 	sm.Set(ctx, "key3", "val3")
