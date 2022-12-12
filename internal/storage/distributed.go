@@ -256,7 +256,8 @@ func (l *fsm) Apply(record *raft.Log) interface{} {
 
 // will have applyPut(records)/applyGet(key)/applyDelete(key)
 func (l *fsm) applySet(b []byte) interface{} {
-	var req api.PutRequest
+	// var req api.PutRequest
+	var req api.Records
 	err := proto.Unmarshal(b, &req)
 	if err != nil {
 		return err
@@ -264,7 +265,9 @@ func (l *fsm) applySet(b []byte) interface{} {
 
 	ctx := context.Background()
 
-	err = l.sm.Set(ctx, req.Records.Key, req.Records.Value)
+	// fmt.Println("see in applySet: ", req.Records)
+	// err = l.sm.Set(ctx, req.Records.Key, req.Records.Value)
+	err = l.sm.Set(ctx, req.Key, req.Value)
 	if err != nil {
 		return err
 	}
@@ -275,10 +278,13 @@ func (l *fsm) applySet(b []byte) interface{} {
 
 func (l *fsm) applyGet(b []byte) interface{} {
 	var req api.GetRequest
+	fmt.Println("seee the get: ", string(b))
 	err := proto.Unmarshal(b, &req)
 	if err != nil {
+		fmt.Println("seee the get err: ", err)
 		return err
 	}
+	fmt.Println("seee the get after proto: ", req.Key)
 
 	ctx := context.Background()
 
@@ -286,6 +292,8 @@ func (l *fsm) applyGet(b []byte) interface{} {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("see th get result::::: ", ndVal)
 
 	// will return the expected response from the method executed on the storage
 	// return ndVal, err
@@ -425,6 +433,8 @@ func (l *logStore) StoreLog(record *raft.Log) error {
 	return l.StoreLogs([]*raft.Log{record})
 }
 func (l *logStore) StoreLogs(records []*raft.Log) error {
+	fmt.Println("see in storeLogs....: ", records)
+
 	for _, record := range records {
 		if _, err := l.Append(&api.Record{
 			Value: record.Data,
@@ -433,14 +443,6 @@ func (l *logStore) StoreLogs(records []*raft.Log) error {
 		}); err != nil {
 			return err
 		}
-
-		// if _, err := l.Append(&api.Records{
-		// 	Value: string(record.Data),
-		// 	Term:  record.Term,
-		// 	Type:  uint32(record.Type),
-		// }); err != nil {
-		// 	return err
-		// }
 	}
 	return nil
 }

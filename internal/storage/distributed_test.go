@@ -3,14 +3,15 @@ package storage
 import (
 	"fmt"
 
-	// api "github.com/djedjethai/generation/api/v1/keyvalue"
+	api "github.com/djedjethai/generation/api/v1/keyvalue"
 	// "golang.org/x/net/context"
 
 	// // "github.com/djedjethai/proglog/internal/log"
+	"context"
 	"io/ioutil"
 	"net"
 	"os"
-	// "reflect"
+	"reflect"
 	"testing"
 	"time"
 
@@ -64,29 +65,34 @@ func TestMultipleNodes(t *testing.T) {
 		logs = append(logs, l)
 	}
 
-	// records := []*api.Records{
-	// 	{Key: "firstKey", Value: "firstValue"},
-	// 	{Key: "secondValue", Value: "secondValue"},
-	// }
+	records := []*api.Records{
+		{Key: "firstKey", Value: "firstValue"},
+		{Key: "secondValue", Value: "secondValue"},
+	}
 
-	// ctx := context.Background()
-	// for _, record := range records {
-	// 	err := logs[0].Set(ctx, record.Key, record.Value)
-	// 	require.NoError(t, err)
-	// 	require.Eventually(t, func() bool {
-	// 		for j := 0; j < nodeCount; j++ {
-	// 			got, err := logs[j].Get(ctx, record.Key)
-	// 			if err != nil {
-	// 				return false
-	// 			}
-	// 			// record.Offset = off
-	// 			if !reflect.DeepEqual(got.(string), record.Value) {
-	// 				return false
-	// 			}
-	// 		}
-	// 		return true
-	// 	}, 500*time.Millisecond, 50*time.Millisecond)
-	// }
+	ctx := context.Background()
+	for _, record := range records {
+		fmt.Println("see the records++++++++++++++++++++++++: ", record.Key)
+		err := logs[0].Set(ctx, record.Key, record.Value)
+		require.NoError(t, err)
+		require.Eventually(t, func() bool {
+			for j := 0; j < nodeCount; j++ {
+				got, err := logs[j].Get(ctx, record.Key)
+				if err != nil {
+					return false
+				}
+				// record.Offset = off
+				fmt.Println("seee the goot: ", got.(string))
+				fmt.Println("seee the goot expected: ", record.Value)
+				if !reflect.DeepEqual(got.(string), record.Value) {
+					return false
+				}
+				fmt.Println("after ============================")
+				return true
+			}
+			return true
+		}, 500*time.Millisecond, 50*time.Millisecond)
+	}
 
 	// err := logs[0].Leave("1")
 	// require.NoError(t, err)
@@ -96,10 +102,11 @@ func TestMultipleNodes(t *testing.T) {
 	// require.NoError(t, err)
 	// time.Sleep(50 * time.Millisecond)
 	// record, err := logs[1].Get(ctx, "thirdKey")
-	// require.IsType(t, api.ErrOffsetOutOfRange{}, err)
+	// // TODO here pb fail....
+	// // require.IsType(t, api.ErrOffsetOutOfRange{}, err)
 	// require.Nil(t, record)
 	// record, err = logs[2].Get(ctx, "thirdKey")
 	// require.NoError(t, err)
 	// require.Equal(t, "thirdValue", record.(string))
-	// // require.Equal(t, off, record.Offset)
+	// // // require.Equal(t, off, record.Offset)
 }
