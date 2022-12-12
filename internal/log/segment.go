@@ -51,7 +51,7 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	return s, nil
 }
 
-func (s *segment) Append(record *api.Records) (offset uint64, err error) {
+func (s *segment) Append(record *api.Record) (offset uint64, err error) {
 	cur := s.nextOffset
 	record.Offset = cur
 	p, err := proto.Marshal(record)
@@ -73,7 +73,7 @@ func (s *segment) Append(record *api.Records) (offset uint64, err error) {
 	return cur, nil
 }
 
-func (s *segment) Read(off uint64) (*api.Records, error) {
+func (s *segment) Read(off uint64) (*api.Record, error) {
 	_, pos, err := s.index.Read(int64(off - s.baseOffset))
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (s *segment) Read(off uint64) (*api.Records, error) {
 	if err != nil {
 		return nil, err
 	}
-	record := &api.Records{}
+	record := &api.Record{}
 	err = proto.Unmarshal(p, record)
 	return record, err
 }

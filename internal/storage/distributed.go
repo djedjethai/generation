@@ -414,7 +414,7 @@ func (l *logStore) GetLog(index uint64, out *raft.Log) error {
 	if err != nil {
 		return err
 	}
-	out.Data = []byte(in.Value)
+	out.Data = in.Value
 	out.Index = in.Offset
 	out.Type = raft.LogType(in.Type)
 	out.Term = in.Term
@@ -426,13 +426,21 @@ func (l *logStore) StoreLog(record *raft.Log) error {
 }
 func (l *logStore) StoreLogs(records []*raft.Log) error {
 	for _, record := range records {
-		if _, err := l.Append(&api.Records{
-			Value: string(record.Data),
+		if _, err := l.Append(&api.Record{
+			Value: record.Data,
 			Term:  record.Term,
 			Type:  uint32(record.Type),
 		}); err != nil {
 			return err
 		}
+
+		// if _, err := l.Append(&api.Records{
+		// 	Value: string(record.Data),
+		// 	Term:  record.Term,
+		// 	Type:  uint32(record.Type),
+		// }); err != nil {
+		// 	return err
+		// }
 	}
 	return nil
 }

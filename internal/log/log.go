@@ -70,7 +70,7 @@ func (l *Log) setup() error {
 	return nil
 }
 
-func (l *Log) Append(record *api.Records) (uint64, error) {
+func (l *Log) Append(record *api.Record) (uint64, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	off, err := l.activeSegment.Append(record)
@@ -83,7 +83,7 @@ func (l *Log) Append(record *api.Records) (uint64, error) {
 	return off, err
 }
 
-func (l *Log) Read(off uint64) (*api.Records, error) {
+func (l *Log) Read(off uint64) (*api.Record, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	var s *segment
