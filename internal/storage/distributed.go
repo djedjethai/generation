@@ -278,13 +278,11 @@ func (l *fsm) applySet(b []byte) interface{} {
 
 func (l *fsm) applyGet(b []byte) interface{} {
 	var req api.GetRequest
-	fmt.Println("seee the get: ", string(b))
 	err := proto.Unmarshal(b, &req)
 	if err != nil {
 		fmt.Println("seee the get err: ", err)
 		return err
 	}
-	fmt.Println("seee the get after proto: ", req.Key)
 
 	ctx := context.Background()
 
@@ -292,8 +290,6 @@ func (l *fsm) applyGet(b []byte) interface{} {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("see th get result::::: ", ndVal)
 
 	// will return the expected response from the method executed on the storage
 	// return ndVal, err
@@ -542,11 +538,15 @@ func (l *DistributedLog) Join(id, addr string) error {
 }
 
 func (l *DistributedLog) Leave(id string) error {
+	fmt.Println("node with ID is leaving: ", id)
 	removeFuture := l.raft.RemoveServer(raft.ServerID(id), 0, 0)
+	fmt.Println("node with ID is leaving members: ")
+	fmt.Println("node with ID is leaving err: ", removeFuture.Error())
 	return removeFuture.Error()
 }
 
 func (l *DistributedLog) WaitForLeader(timeout time.Duration) error {
+	fmt.Println("set new leader")
 	timeoutc := time.After(timeout)
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()

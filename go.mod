@@ -36,7 +36,7 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/hashicorp/memberlist v0.1.3 // indirect
-	github.com/hashicorp/raft v1.3.11 // indirect
+	github.com/hashicorp/raft v1.1.1 // indirect
 	github.com/hashicorp/raft-boltdb v0.0.0-20220329195025-15018e9b97e0 // indirect
 	github.com/hashicorp/serf v0.8.5 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
@@ -59,6 +59,7 @@ require (
 	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/travisjeffery/go-dynaport v1.0.0 // indirect
 	github.com/tysonmote/gommap v0.0.2 // indirect
+	go.etcd.io/bbolt v1.3.5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
@@ -70,3 +71,5 @@ require (
 	google.golang.org/genproto v0.0.0-20201201144952-b05cb90ed32e // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/hashicorp/raft-boltdb => github.com/travisjeffery/raft-boltdb v1.0.0

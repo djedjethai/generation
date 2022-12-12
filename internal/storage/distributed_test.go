@@ -67,18 +67,20 @@ func TestMultipleNodes(t *testing.T) {
 
 	records := []*api.Records{
 		{Key: "firstKey", Value: "firstValue"},
-		{Key: "secondValue", Value: "secondValue"},
+		{Key: "secondKey", Value: "secondValue"},
 	}
 
+	time.Sleep(50 * time.Millisecond)
 	ctx := context.Background()
 	for _, record := range records {
-		fmt.Println("see the records++++++++++++++++++++++++: ", record.Key)
 		err := logs[0].Set(ctx, record.Key, record.Value)
 		require.NoError(t, err)
 		require.Eventually(t, func() bool {
 			for j := 0; j < nodeCount; j++ {
+				fmt.Println("the nodeID ^^^^^^^^^^^^^^^^^^^^^^^^^^^: ", j)
 				got, err := logs[j].Get(ctx, record.Key)
 				if err != nil {
+					fmt.Println("seee the Get errrrrrrrrrrrrrrrrrr: ", err)
 					return false
 				}
 				// record.Offset = off
@@ -88,25 +90,35 @@ func TestMultipleNodes(t *testing.T) {
 					return false
 				}
 				fmt.Println("after ============================")
-				return true
+				// return true
 			}
 			return true
 		}, 500*time.Millisecond, 50*time.Millisecond)
 	}
 
-	// err := logs[0].Leave("1")
-	// require.NoError(t, err)
-	// time.Sleep(50 * time.Millisecond)
-	// // off, err := logs[0].Append(&api.Record{
-	// err = logs[0].Set(ctx, "thirdKey", "thirdValue")
-	// require.NoError(t, err)
-	// time.Sleep(50 * time.Millisecond)
-	// record, err := logs[1].Get(ctx, "thirdKey")
-	// // TODO here pb fail....
-	// // require.IsType(t, api.ErrOffsetOutOfRange{}, err)
-	// require.Nil(t, record)
-	// record, err = logs[2].Get(ctx, "thirdKey")
-	// require.NoError(t, err)
-	// require.Equal(t, "thirdValue", record.(string))
-	// // // require.Equal(t, off, record.Offset)
+	time.Sleep(50 * time.Millisecond)
+
+	err := logs[0].Leave("1")
+	require.NoError(t, err)
+
+	time.Sleep(50 * time.Millisecond)
+
+	err = logs[0].Set(ctx, "thirdKey", "thirdValue")
+	require.NoError(t, err)
+
+	time.Sleep(50 * time.Millisecond)
+
+	record, err := logs[1].Get(ctx, "thirdKey")
+	fmt.Println("ta mere 3: ", record)
+	fmt.Println("ta mere 3 errrrrrrrrrrrrrrrrrrr: ", err)
+	// TODO here pb fail....
+	// require.IsType(t, api.ErrOffsetOutOfRange{}, err)
+	require.Nil(t, record)
+	fmt.Println("ta mere 4: ", record)
+	record, err = logs[2].Get(ctx, "secondKey")
+	fmt.Println("ta mere 4 rec: ", record)
+	fmt.Println("ta mere 4 err: ", record)
+	require.NoError(t, err)
+	require.Equal(t, "thirdValue", record.(string))
+	// // require.Equal(t, off, record.Offset)
 }
