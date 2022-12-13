@@ -15,9 +15,9 @@ import (
 	"time"
 
 	api "github.com/djedjethai/generation/api/v1/keyvalue"
-	"github.com/djedjethai/generation/internal/log"
 	"github.com/djedjethai/generation/internal/models"
 	"github.com/djedjethai/generation/internal/observability"
+	"github.com/djedjethai/generation/internal/raftlog"
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
 
@@ -26,16 +26,16 @@ import (
 )
 
 type DistributedLog struct {
-	logConfig log.Config
+	logConfig raftlog.Config
 	config    Config
-	log       *log.Log
+	log       *raftlog.Log
 	sm        *ShardedMap
 	raft      *raft.Raft
 }
 
 func NewDistributedLog(dataDir string, conf Config, nShard, maxLgt int, observ *observability.Observability) (*DistributedLog, error) {
 	l := &DistributedLog{
-		logConfig: log.Config{},
+		logConfig: raftlog.Config{},
 		config:    conf,
 	}
 
@@ -401,11 +401,11 @@ func (l *fsm) Restore(r io.ReadCloser) error {
 var _ raft.LogStore = (*logStore)(nil)
 
 type logStore struct {
-	*log.Log
+	*raftlog.Log
 }
 
-func newLogStore(dir string, c log.Config) (*logStore, error) {
-	log, err := log.NewLog(dir, c)
+func newLogStore(dir string, c raftlog.Config) (*logStore, error) {
+	log, err := raftlog.NewLog(dir, c)
 	if err != nil {
 		return nil, err
 	}
