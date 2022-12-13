@@ -1,4 +1,4 @@
-package log
+package raftlog
 
 import (
 	api "github.com/djedjethai/generation/api/v1/keyvalue"
@@ -33,8 +33,8 @@ func TestLog(t *testing.T) {
 }
 
 func testAppendRead(t *testing.T, log *Log) {
-	append := &api.Records{
-		Value: "hello world",
+	append := &api.Record{
+		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
 	require.NoError(t, err)
@@ -51,15 +51,9 @@ func testOutOfRangeErr(t *testing.T, log *Log) {
 	require.Equal(t, uint64(1), apiErr.Offset)
 }
 
-// func testOutOfRangeErr(t *testing.T, log *Log) {
-// 	read, err := log.Read(1)
-// 	require.Nil(t, read)
-// 	require.Error(t, err)
-// }
-
 func testInitExisting(t *testing.T, o *Log) {
-	append := &api.Records{
-		Value: "hello world",
+	append := &api.Record{
+		Value: []byte("hello world"),
 	}
 	for i := 0; i < 3; i++ {
 		_, err := o.Append(append)
@@ -83,8 +77,8 @@ func testInitExisting(t *testing.T, o *Log) {
 }
 
 func testReader(t *testing.T, log *Log) {
-	append := &api.Records{
-		Value: "hello world",
+	append := &api.Record{
+		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
 	require.NoError(t, err)
@@ -92,15 +86,15 @@ func testReader(t *testing.T, log *Log) {
 	reader := log.Reader()
 	b, err := ioutil.ReadAll(reader)
 	require.NoError(t, err)
-	read := &api.Records{}
+	read := &api.Record{}
 	err = proto.Unmarshal(b[lenWidth:], read)
 	require.NoError(t, err)
 	require.Equal(t, append.Value, read.Value)
 }
 
 func testTruncate(t *testing.T, log *Log) {
-	append := &api.Records{
-		Value: "hello world",
+	append := &api.Record{
+		Value: []byte("hello world"),
 	}
 	for i := 0; i < 3; i++ {
 		_, err := log.Append(append)

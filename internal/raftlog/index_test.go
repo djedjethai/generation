@@ -1,4 +1,4 @@
-package log
+package raftlog
 
 import (
 	"github.com/stretchr/testify/require"
