@@ -180,10 +180,12 @@ func (l *DistributedLog) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
+// no replication to followers nodes
 func (l *DistributedLog) Keys(ctx context.Context) []string {
 	return []string{}
 }
 
+// no replication to followers nodes
 func (l *DistributedLog) KeysValues(ctx context.Context, ch chan models.KeysValues) error {
 	return nil
 }
