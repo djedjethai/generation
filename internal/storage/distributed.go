@@ -541,10 +541,7 @@ func (l *DistributedLog) Join(id, addr string) error {
 }
 
 func (l *DistributedLog) Leave(id string) error {
-	fmt.Println("node with ID is leaving: ", id)
 	removeFuture := l.raft.RemoveServer(raft.ServerID(id), 0, 0)
-	fmt.Println("node with ID is leaving members: ")
-	fmt.Println("node with ID is leaving err: ", removeFuture.Error())
 	return removeFuture.Error()
 }
 

@@ -68,7 +68,6 @@ func TestMultipleNodes(t *testing.T) {
 	records := []*api.Records{
 		{Key: "firstKey", Value: "firstValue"},
 		{Key: "secondKey", Value: "secondValue"},
-		{Key: "deletedKey", Value: "deletedValue"},
 	}
 
 	time.Sleep(50 * time.Millisecond)
@@ -111,4 +110,16 @@ func TestMultipleNodes(t *testing.T) {
 	record, err = logs[2].Read(ctx, "thirdKey")
 	require.NoError(t, err)
 	require.Equal(t, "thirdValue", record)
+
+	// delete the thirdKey
+	err = logs[0].Delete(ctx, "thirdKey")
+	require.NoError(t, err)
+
+	// wait a little for raft leader to replicate to followers
+	time.Sleep(50 * time.Millisecond)
+
+	record, err = logs[2].Read(ctx, "thirdKey")
+	require.Error(t, err, "no such key")
+	require.Equal(t, "", record)
+
 }
