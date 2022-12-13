@@ -11,7 +11,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"time"
 
@@ -128,7 +127,7 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("allloooo3", config.LocalID, " - ", reflect.TypeOf(string(transport.LocalAddr())))
+	fmt.Println("allloooo3", config, " - ", transport.LocalAddr())
 	if l.config.Raft.Bootstrap && !hasState {
 		configA := raft.Configuration{
 			Servers: []raft.Server{{
