@@ -93,7 +93,9 @@ func New(cfg Config) (*Agent, func(), error) {
 
 func (a *Agent) setupStorage(shards, itemsPerShard int) error {
 	if shards > 0 && itemsPerShard > 0 {
+		// TODO replace shardedMap with distributed.go, New
 		shardedMap := storage.NewShardedMap(shards, itemsPerShard, a.config.Observability)
+		// TODO replace ....
 		a.config.ShardedMap = shardedMap
 		return nil
 	} else {
@@ -132,9 +134,9 @@ func (a *Agent) setupServers() (func(), error) {
 }
 
 func (a *Agent) runGRPC() (func(), error) {
-	// l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "127.0.0.1", a.config.PortGRPC))
+	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "127.0.0.1", a.config.PortGRPC))
 	// TODO if run in docker
-	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", a.config.PortGRPC))
+	// l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", a.config.PortGRPC))
 	if err != nil {
 		return func() {}, err
 	}

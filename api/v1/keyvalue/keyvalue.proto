@@ -18,6 +18,14 @@ message Records {
 	string value = 2;
 }
 
+// dataStructure which will be save in the raftLogger(no other means)
+message Record {
+	bytes value = 1;
+	uint64 offset = 2;
+	uint64 term = 3;
+	uint32 type = 4;
+}
+
 message GetRecords{
 	Records records =1;
 }
