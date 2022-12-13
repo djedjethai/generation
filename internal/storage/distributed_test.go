@@ -68,6 +68,7 @@ func TestMultipleNodes(t *testing.T) {
 	records := []*api.Records{
 		{Key: "firstKey", Value: "firstValue"},
 		{Key: "secondKey", Value: "secondValue"},
+		{Key: "deletedKey", Value: "deletedValue"},
 	}
 
 	time.Sleep(50 * time.Millisecond)
@@ -77,48 +78,37 @@ func TestMultipleNodes(t *testing.T) {
 		require.NoError(t, err)
 		require.Eventually(t, func() bool {
 			for j := 0; j < nodeCount; j++ {
-				fmt.Println("the nodeID ^^^^^^^^^^^^^^^^^^^^^^^^^^^: ", j)
-				got, err := logs[j].Get(ctx, record.Key)
+				got, err := logs[j].Read(ctx, record.Key)
 				if err != nil {
-					fmt.Println("seee the Get errrrrrrrrrrrrrrrrrr: ", err)
 					return false
 				}
-				// record.Offset = off
-				fmt.Println("seee the goot: ", got.(string))
-				fmt.Println("seee the goot expected: ", record.Value)
-				if !reflect.DeepEqual(got.(string), record.Value) {
+				if !reflect.DeepEqual(got, record.Value) {
 					return false
 				}
-				fmt.Println("after ============================")
-				// return true
 			}
 			return true
 		}, 500*time.Millisecond, 50*time.Millisecond)
 	}
 
-	time.Sleep(50 * time.Millisecond)
-
+	// kill the node 1
 	err := logs[0].Leave("1")
 	require.NoError(t, err)
 
 	time.Sleep(50 * time.Millisecond)
 
+	// add a new entry via the leader
 	err = logs[0].Set(ctx, "thirdKey", "thirdValue")
 	require.NoError(t, err)
 
 	time.Sleep(50 * time.Millisecond)
 
-	record, err := logs[1].Get(ctx, "thirdKey")
-	fmt.Println("ta mere 3: ", record)
-	fmt.Println("ta mere 3 errrrrrrrrrrrrrrrrrrr: ", err)
-	// TODO here pb fail....
-	// require.IsType(t, api.ErrOffsetOutOfRange{}, err)
-	require.Nil(t, record)
-	fmt.Println("ta mere 4: ", record)
-	record, err = logs[2].Get(ctx, "secondKey")
-	fmt.Println("ta mere 4 rec: ", record)
-	fmt.Println("ta mere 4 err: ", record)
+	// record must be empty as this node has been killed
+	record, err := logs[1].Read(ctx, "thirdKey")
+	require.Error(t, err, "no such key")
+	require.Equal(t, "", record)
+
+	// this node should still be able to return the last entry
+	record, err = logs[2].Read(ctx, "thirdKey")
 	require.NoError(t, err)
-	require.Equal(t, "thirdValue", record.(string))
-	// // require.Equal(t, off, record.Offset)
+	require.Equal(t, "thirdValue", record)
 }

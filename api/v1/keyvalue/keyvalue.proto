@@ -16,11 +16,9 @@ message Empty {}
 message Records {
 	string key = 1;
 	string value = 2;
-	uint64 offset = 4;
- 	uint64 term = 5;
-	uint32 type = 6;
 }
 
+// dataStructure which will be save in the raftLogger(no other means)
 message Record {
 	bytes value = 1;
 	uint64 offset = 2;
@@ -28,34 +26,16 @@ message Record {
 	uint32 type = 4;
 }
 
-
-// message LogRecords {
-// 	string key = 1;
-// 	string value = 2;
-// 	string action = 3;
-// 	uint64 offset = 4;
-//  	uint64 term = 5;
-// 	uint32 type = 6;
-// }
-
-// message LogRecords {
-// 	string key = 1;
-// 	string value = 2;
-// 	string Action =3; 
-// }
-
 message GetRecords{
 	Records records =1;
 }
 
 message GetRequest {
 	string key = 1;
-	uint64 offset = 2;
 }
 
 message GetResponse{
 	string value = 1;
-	uint64 offset = 2;
 }
 
 message GetKeysRequest{}
@@ -68,18 +48,13 @@ message PutRequest{
 	Records records = 1;
 }
 
-message PutResponse{
-	uint64 offset = 1;
-}
+message PutResponse{}
 
 message DeleteRequest{
 	string key = 1;
-	uint64 offset = 2;
 }
 
-message DeleteResponse{
-	uint64 offset = 1;
-}
+message DeleteResponse{}
 
 // message PutError{
 // 	Error put_error = 1;

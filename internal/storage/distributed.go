@@ -70,7 +70,6 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 		return err
 	}
 
-	fmt.Println("iiiii: ", logStore)
 	stableStore, err := raftboltdb.NewBoltStore(
 		filepath.Join(dataDir, "raft", "stable"),
 	)
@@ -127,7 +126,6 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("allloooo3", config, " - ", transport.LocalAddr())
 	if l.config.Raft.Bootstrap && !hasState {
 		configA := raft.Configuration{
 			Servers: []raft.Server{{
@@ -135,9 +133,7 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 				Address: transport.LocalAddr(),
 			}},
 		}
-		fmt.Println("allloooo1: ", configA)
 		err = l.raft.BootstrapCluster(configA).Error()
-		fmt.Println("allloooo1: ", err)
 	}
 	return err
 	// return nil
@@ -192,6 +188,15 @@ func (l *DistributedLog) KeysValues(ctx context.Context, ch chan models.KeysValu
 	return nil
 }
 
+// for testing purpose only
+func (l *DistributedLog) Read(ctx context.Context, key string) (string, error) {
+	val, err := l.sm.Get(ctx, key)
+	if err != nil {
+		return "", err
+	}
+	return val.(string), nil
+}
+
 // apply will switch on the RequestType(Put/Get/Delete)
 func (l *DistributedLog) apply(reqType RequestType, req proto.Message) (interface{}, error) {
 	var buf bytes.Buffer
@@ -232,10 +237,10 @@ type fsm struct {
 type RequestType uint8
 
 const (
-	SetRequestType    RequestType = 0
-	GetRequestType    RequestType = 1
-	DeleteRequestType RequestType = 2
-	AppendRequestType RequestType = 3
+	SetRequestType RequestType = iota
+	GetRequestType
+	DeleteRequestType
+	AppendRequestType
 )
 
 // will switch on reqType(Put/Get/Delete)
@@ -428,7 +433,6 @@ func (l *logStore) StoreLog(record *raft.Log) error {
 	return l.StoreLogs([]*raft.Log{record})
 }
 func (l *logStore) StoreLogs(records []*raft.Log) error {
-	fmt.Println("see in storeLogs....: ", records)
 
 	for _, record := range records {
 		if _, err := l.Append(&api.Record{
@@ -569,37 +573,3 @@ func (l *DistributedLog) Close() error {
 	return nil
 	// return l.log.Close()
 }
-
-// func (l *DistributedLog) Put(record *api.Records) (uint64, error) {
-// 	res, err := l.apply(
-// 		PutRequestType,
-// 		&api.PutRequest{Records: record},
-// 	)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	return res.(*api.PutResponse).Offset, nil
-// }
-//
-// func (l *DistributedLog) Get(gr *api.GetRequest) (uint64, error) {
-// 	res, err := l.apply(
-// 		GetRequestType,
-// 		gr,
-// 	)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	return res.(*api.GetResponse).Offset, nil
-// }
-//
-// func (l *DistributedLog) Delete(dr *api.DeleteRequest) (uint64, error) {
-// 	res, err := l.apply(
-// 		DeleteRequestType,
-// 		dr,
-// 	)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	return res.(*api.DeleteResponse).Offset, nil
-// }
-//
