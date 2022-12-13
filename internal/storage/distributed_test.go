@@ -4,9 +4,7 @@ import (
 	"fmt"
 
 	api "github.com/djedjethai/generation/api/v1/keyvalue"
-	// "golang.org/x/net/context"
 
-	// // "github.com/djedjethai/proglog/internal/log"
 	"context"
 	"io/ioutil"
 	"net"
@@ -15,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/djedjethai/generation/internal/models"
 	"github.com/djedjethai/generation/internal/observability"
 	"github.com/hashicorp/raft"
 	"github.com/stretchr/testify/require"
@@ -121,5 +120,23 @@ func TestMultipleNodes(t *testing.T) {
 	record, err = logs[2].Read(ctx, "thirdKey")
 	require.Error(t, err, "no such key")
 	require.Equal(t, "", record)
+
+	// test getKeys
+	keys := logs[2].Keys(ctx)
+	require.Equal(t, 2, len(keys))
+
+	// test get KeysValues
+	ch := make(chan models.KeysValues, 3)
+	err = logs[2].KeysValues(ctx, ch)
+
+	var datas = []models.KeysValues{}
+	for d := range ch {
+		datas = append(datas, d)
+	}
+	require.Equal(t, 2, len(datas))
+	require.NotNil(t, datas[0].Key)
+	require.NotNil(t, datas[0].Value)
+	require.NotNil(t, datas[1].Key)
+	require.NotNil(t, datas[1].Value)
 
 }

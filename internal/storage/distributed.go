@@ -181,13 +181,15 @@ func (l *DistributedLog) Delete(ctx context.Context, key string) error {
 }
 
 // no replication to followers nodes
+// will be access directly from followers nodes
 func (l *DistributedLog) Keys(ctx context.Context) []string {
-	return []string{}
+	return l.sm.Keys(ctx)
 }
 
 // no replication to followers nodes
+// will be access directly from followers nodes
 func (l *DistributedLog) KeysValues(ctx context.Context, ch chan models.KeysValues) error {
-	return nil
+	return l.sm.KeysValues(ctx, ch)
 }
 
 // for testing purpose only
