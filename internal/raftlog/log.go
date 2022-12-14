@@ -2,7 +2,6 @@ package raftlog
 
 import (
 	// "fmt"
-	api "github.com/djedjethai/generation/api/v1/keyvalue"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,6 +10,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	api "github.com/djedjethai/generation/api/v1/keyvalue"
+	"github.com/djedjethai/generation/internal/models"
+	// "github.com/golang/protobuf/proto"
 )
 
 type Log struct {
@@ -70,10 +73,17 @@ func (l *Log) setup() error {
 	return nil
 }
 
-func (l *Log) Append(record *api.Record) (uint64, error) {
+func (l *Log) Append(rec *api.Record) (uint64, error) {
+	record := models.Record{
+		Value:  rec.Value,
+		Offset: rec.Offset,
+		Term:   rec.Term,
+		Type:   rec.Type,
+	}
+	// proto.Marshal(rec)
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	off, err := l.activeSegment.Append(record)
+	off, err := l.activeSegment.Append(&record)
 	if err != nil {
 		return 0, err
 	}
@@ -83,7 +93,7 @@ func (l *Log) Append(record *api.Record) (uint64, error) {
 	return off, err
 }
 
-func (l *Log) Read(off uint64) (*api.Record, error) {
+func (l *Log) Read(off uint64) (*models.Record, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	var s *segment

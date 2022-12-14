@@ -126,6 +126,8 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("allloooo3 -----", config, " - ", transport.LocalAddr())
 	if l.config.Raft.Bootstrap && !hasState {
 		configA := raft.Configuration{
 			Servers: []raft.Server{{
@@ -133,6 +135,7 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 				Address: transport.LocalAddr(),
 			}},
 		}
+		fmt.Println("allloooo1: ", configA)
 		err = l.raft.BootstrapCluster(configA).Error()
 	}
 	return err
@@ -439,6 +442,7 @@ func (l *logStore) StoreLog(record *raft.Log) error {
 func (l *logStore) StoreLogs(records []*raft.Log) error {
 
 	for _, record := range records {
+		fmt.Println("seeeee: ", string(record.Data))
 		if _, err := l.Append(&api.Record{
 			Value: record.Data,
 			Term:  record.Term,
@@ -550,7 +554,7 @@ func (l *DistributedLog) Leave(id string) error {
 }
 
 func (l *DistributedLog) WaitForLeader(timeout time.Duration) error {
-	fmt.Println("set new leader")
+	fmt.Println("set new leader: ", l.raft.Leader())
 	timeoutc := time.After(timeout)
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()

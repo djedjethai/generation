@@ -2,8 +2,9 @@ package raftlog
 
 import (
 	api "github.com/djedjethai/generation/api/v1/keyvalue"
+	"github.com/djedjethai/generation/internal/models"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/proto"
+	// "google.golang.org/protobuf/proto"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -33,7 +34,7 @@ func TestLog(t *testing.T) {
 }
 
 func testAppendRead(t *testing.T, log *Log) {
-	append := &api.Record{
+	append := &models.Record{
 		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
@@ -52,7 +53,7 @@ func testOutOfRangeErr(t *testing.T, log *Log) {
 }
 
 func testInitExisting(t *testing.T, o *Log) {
-	append := &api.Record{
+	append := &models.Record{
 		Value: []byte("hello world"),
 	}
 	for i := 0; i < 3; i++ {
@@ -77,7 +78,7 @@ func testInitExisting(t *testing.T, o *Log) {
 }
 
 func testReader(t *testing.T, log *Log) {
-	append := &api.Record{
+	append := &models.Record{
 		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
@@ -86,14 +87,15 @@ func testReader(t *testing.T, log *Log) {
 	reader := log.Reader()
 	b, err := ioutil.ReadAll(reader)
 	require.NoError(t, err)
-	read := &api.Record{}
-	err = proto.Unmarshal(b[lenWidth:], read)
+	read := models.Record{
+		Value: b[lenWidth:],
+	}
 	require.NoError(t, err)
 	require.Equal(t, append.Value, read.Value)
 }
 
 func testTruncate(t *testing.T, log *Log) {
-	append := &api.Record{
+	append := &models.Record{
 		Value: []byte("hello world"),
 	}
 	for i := 0; i < 3; i++ {

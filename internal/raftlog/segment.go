@@ -2,8 +2,9 @@ package raftlog
 
 import (
 	"fmt"
-	api "github.com/djedjethai/generation/api/v1/keyvalue"
-	"google.golang.org/protobuf/proto"
+	// api "github.com/djedjethai/generation/api/v1/keyvalue"
+	"github.com/djedjethai/generation/internal/models"
+	// "google.golang.org/protobuf/proto"
 	"os"
 	"path"
 )
@@ -51,14 +52,14 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	return s, nil
 }
 
-func (s *segment) Append(record *api.Record) (offset uint64, err error) {
+func (s *segment) Append(record *models.Record) (offset uint64, err error) {
 	cur := s.nextOffset
 	record.Offset = cur
-	p, err := proto.Marshal(record)
-	if err != nil {
-		return 0, err
-	}
-	_, pos, err := s.store.Append(p)
+	// p, err := proto.Marshal(record)
+	// if err != nil {
+	// 	return 0, err
+	// }
+	_, pos, err := s.store.Append(record.Value)
 	if err != nil {
 		return 0, err
 	}
@@ -73,7 +74,7 @@ func (s *segment) Append(record *api.Record) (offset uint64, err error) {
 	return cur, nil
 }
 
-func (s *segment) Read(off uint64) (*api.Record, error) {
+func (s *segment) Read(off uint64) (*models.Record, error) {
 	_, pos, err := s.index.Read(int64(off - s.baseOffset))
 	if err != nil {
 		return nil, err
@@ -82,8 +83,10 @@ func (s *segment) Read(off uint64) (*api.Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	record := &api.Record{}
-	err = proto.Unmarshal(p, record)
+	record := &models.Record{
+		Value: p,
+	}
+	// err = proto.Unmarshal(p, record)
 	return record, err
 }
 

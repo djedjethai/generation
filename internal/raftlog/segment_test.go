@@ -1,7 +1,8 @@
 package raftlog
 
 import (
-	api "github.com/djedjethai/generation/api/v1/keyvalue"
+	// api "github.com/djedjethai/generation/api/v1/keyvalue"
+	"github.com/djedjethai/generation/internal/models"
 	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
@@ -12,7 +13,7 @@ import (
 func TestSegment(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "segment-test")
 	defer os.RemoveAll(dir)
-	want := &api.Record{Value: []byte("hello world")}
+	want := models.Record{Value: []byte("hello world")}
 	c := Config{}
 	c.Segment.MaxStoreBytes = 1024
 	c.Segment.MaxIndexBytes = entWidth * 3
@@ -21,14 +22,14 @@ func TestSegment(t *testing.T) {
 	require.Equal(t, uint64(16), s.nextOffset, s.nextOffset)
 	require.False(t, s.IsMaxed())
 	for i := uint64(0); i < 3; i++ {
-		off, err := s.Append(want)
+		off, err := s.Append(&want)
 		require.NoError(t, err)
 		require.Equal(t, 16+i, off)
 		got, err := s.Read(off)
 		require.NoError(t, err)
 		require.Equal(t, want.Value, got.Value)
 	}
-	_, err = s.Append(want)
+	_, err = s.Append(&want)
 	require.Equal(t, io.EOF, err)
 	// maxed index
 	require.True(t, s.IsMaxed())
