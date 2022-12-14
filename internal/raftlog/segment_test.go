@@ -1,8 +1,6 @@
 package raftlog
 
 import (
-	// api "github.com/djedjethai/generation/api/v1/keyvalue"
-	"github.com/djedjethai/generation/internal/models"
 	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
@@ -13,7 +11,7 @@ import (
 func TestSegment(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "segment-test")
 	defer os.RemoveAll(dir)
-	want := models.Record{Value: []byte("hello world")}
+	want := Record{Value: []byte("hello world")}
 	c := Config{}
 	c.Segment.MaxStoreBytes = 1024
 	c.Segment.MaxIndexBytes = entWidth * 3

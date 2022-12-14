@@ -1,7 +1,6 @@
 package raftlog
 
 import (
-	// "fmt"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -11,9 +10,14 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-
-	"github.com/djedjethai/generation/internal/models"
 )
+
+type Record struct {
+	Value  []byte
+	Offset uint64
+	Term   uint64
+	Type   uint32
+}
 
 type Log struct {
 	mu            sync.RWMutex
@@ -72,7 +76,7 @@ func (l *Log) setup() error {
 	return nil
 }
 
-func (l *Log) Append(record *models.Record) (uint64, error) {
+func (l *Log) Append(record *Record) (uint64, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -86,7 +90,7 @@ func (l *Log) Append(record *models.Record) (uint64, error) {
 	return off, err
 }
 
-func (l *Log) Read(off uint64) (*models.Record, error) {
+func (l *Log) Read(off uint64) (*Record, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	var s *segment

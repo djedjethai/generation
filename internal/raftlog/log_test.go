@@ -3,7 +3,6 @@ package raftlog
 import (
 	"bytes"
 	"encoding/gob"
-	"github.com/djedjethai/generation/internal/models"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
@@ -34,7 +33,7 @@ func TestLog(t *testing.T) {
 }
 
 func testAppendRead(t *testing.T, log *Log) {
-	append := &models.Record{
+	append := &Record{
 		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
@@ -52,7 +51,7 @@ func testOutOfRangeErr(t *testing.T, log *Log) {
 }
 
 func testInitExisting(t *testing.T, o *Log) {
-	append := &models.Record{
+	append := &Record{
 		Value: []byte("hello world"),
 	}
 	for i := 0; i < 3; i++ {
@@ -77,7 +76,7 @@ func testInitExisting(t *testing.T, o *Log) {
 }
 
 func testReader(t *testing.T, log *Log) {
-	append := &models.Record{
+	append := &Record{
 		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
@@ -88,14 +87,14 @@ func testReader(t *testing.T, log *Log) {
 	require.NoError(t, err)
 
 	breader := bytes.NewReader(b[lenWidth:])
-	var read models.Record
+	var read Record
 	err = gob.NewDecoder(breader).Decode(&read)
 	require.NoError(t, err)
 	require.Equal(t, append.Value, read.Value)
 }
 
 func testTruncate(t *testing.T, log *Log) {
-	append := &models.Record{
+	append := &Record{
 		Value: []byte("hello world"),
 	}
 	for i := 0; i < 3; i++ {

@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-
-	"github.com/djedjethai/generation/internal/models"
 	"os"
 	"path"
 )
@@ -53,7 +51,7 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	return s, nil
 }
 
-func (s *segment) Append(record *models.Record) (offset uint64, err error) {
+func (s *segment) Append(record *Record) (offset uint64, err error) {
 	cur := s.nextOffset
 	record.Offset = cur
 
@@ -78,7 +76,7 @@ func (s *segment) Append(record *models.Record) (offset uint64, err error) {
 	return cur, nil
 }
 
-func (s *segment) Read(off uint64) (*models.Record, error) {
+func (s *segment) Read(off uint64) (*Record, error) {
 	_, pos, err := s.index.Read(int64(off - s.baseOffset))
 	if err != nil {
 		return nil, err
@@ -89,7 +87,7 @@ func (s *segment) Read(off uint64) (*models.Record, error) {
 	}
 
 	reader := bytes.NewReader(p)
-	var record models.Record
+	var record Record
 	err = gob.NewDecoder(reader).Decode(&record)
 	if err != nil {
 		return nil, err

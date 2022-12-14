@@ -439,7 +439,7 @@ func (l *logStore) StoreLog(record *raft.Log) error {
 func (l *logStore) StoreLogs(records []*raft.Log) error {
 
 	for _, record := range records {
-		if _, err := l.Append(&models.Record{
+		if _, err := l.Append(&raftlog.Record{
 			Value: record.Data,
 			Term:  record.Term,
 			Type:  uint32(record.Type),
