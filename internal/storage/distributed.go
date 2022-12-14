@@ -429,6 +429,10 @@ func (l *logStore) GetLog(index uint64, out *raft.Log) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("geeeetttttttttttttt:m ", string(in.Value))
+	fmt.Println("geeeetttttttttttttt:m ", in.Offset)
+	fmt.Println("geeeetttttttttttttt:m ", in.Term)
+	fmt.Println("geeeetttttttttttttt:m ", in.Type)
 	out.Data = in.Value
 	out.Index = in.Offset
 	out.Type = raft.LogType(in.Type)
@@ -441,8 +445,18 @@ func (l *logStore) StoreLog(record *raft.Log) error {
 }
 func (l *logStore) StoreLogs(records []*raft.Log) error {
 
+	// for _, record := range records {
+	// 	fmt.Println("seeeee: ", string(record.Data))
+	// 	if _, err := l.Append(&models.Record{
+	// 		Value: record.Data,
+	// 		Term:  record.Term,
+	// 		Type:  uint32(record.Type),
+	// 	}); err != nil {
+	// 		return err
+	// 	}
+	// }
+
 	for _, record := range records {
-		fmt.Println("seeeee: ", string(record.Data))
 		if _, err := l.Append(&api.Record{
 			Value: record.Data,
 			Term:  record.Term,

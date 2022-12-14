@@ -2,6 +2,7 @@ package raftlog
 
 import (
 	// "fmt"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -74,16 +75,20 @@ func (l *Log) setup() error {
 }
 
 func (l *Log) Append(rec *api.Record) (uint64, error) {
-	record := models.Record{
+	record := &models.Record{
 		Value:  rec.Value,
 		Offset: rec.Offset,
 		Term:   rec.Term,
 		Type:   rec.Type,
 	}
+	fmt.Println("te recooord: ", string(record.Value))
+	fmt.Println("te recooord: ", record.Offset)
+	fmt.Println("te recooord: ", record.Term)
+	fmt.Println("te recooord: ", record.Type)
 	// proto.Marshal(rec)
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	off, err := l.activeSegment.Append(&record)
+	off, err := l.activeSegment.Append(record)
 	if err != nil {
 		return 0, err
 	}
