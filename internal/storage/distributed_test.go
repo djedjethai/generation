@@ -22,7 +22,7 @@ func TestMultipleNodes(t *testing.T) {
 	nbrShards := 2
 	itemsShard := 5
 
-	var logs []*DistributedLog
+	var logs []*DistributedStorage
 	nodeCount := 3
 	ports := dynaport.Get(nodeCount)
 	for i := 0; i < nodeCount; i++ {
@@ -46,7 +46,7 @@ func TestMultipleNodes(t *testing.T) {
 		if i == 0 {
 			config.Raft.Bootstrap = true
 		}
-		l, err := NewDistributedLog(dataDir, config, nbrShards, itemsShard, &obs)
+		l, err := NewDistributedStorage(dataDir, config, nbrShards, itemsShard, &obs)
 		// l, err := NewDistributedLog(dataDir, config)
 		require.NoError(t, err)
 		if i != 0 {
