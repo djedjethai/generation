@@ -1,10 +1,11 @@
 package raftlog
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
-	// api "github.com/djedjethai/generation/api/v1/keyvalue"
+
 	"github.com/djedjethai/generation/internal/models"
-	// "google.golang.org/protobuf/proto"
 	"os"
 	"path"
 )
@@ -55,16 +56,14 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 func (s *segment) Append(record *models.Record) (offset uint64, err error) {
 	cur := s.nextOffset
 	record.Offset = cur
-	rec := []byte{}
-	rec = append(rec, record.Value...)
-	rec = append(rec, byte(record.Offset))
-	rec = append(rec, byte(record.Term))
-	rec = append(rec, byte(record.Type))
-	// p, err := proto.Marshal(record)
-	// if err != nil {
-	// 	return 0, err
-	// }
-	_, pos, err := s.store.Append(rec)
+
+	var rec bytes.Buffer
+	err = gob.NewEncoder(&rec).Encode(record)
+	if err != nil {
+		return 0, err
+	}
+
+	_, pos, err := s.store.Append(rec.Bytes())
 	if err != nil {
 		return 0, err
 	}
@@ -88,12 +87,15 @@ func (s *segment) Read(off uint64) (*models.Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("seeee the ppppp: ", p)
-	record := &models.Record{
-		Value: p,
+
+	reader := bytes.NewReader(p)
+	var record models.Record
+	err = gob.NewDecoder(reader).Decode(&record)
+	if err != nil {
+		return nil, err
 	}
-	// err = proto.Unmarshal(p, record)
-	return record, err
+
+	return &record, err
 }
 
 func (s *segment) IsMaxed() bool {

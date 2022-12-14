@@ -2,7 +2,7 @@ package raftlog
 
 import (
 	// "fmt"
-	"fmt"
+	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -12,9 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	api "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/internal/models"
-	// "github.com/golang/protobuf/proto"
 )
 
 type Log struct {
@@ -74,20 +72,10 @@ func (l *Log) setup() error {
 	return nil
 }
 
-func (l *Log) Append(rec *api.Record) (uint64, error) {
-	record := &models.Record{
-		Value:  rec.Value,
-		Offset: rec.Offset,
-		Term:   rec.Term,
-		Type:   rec.Type,
-	}
-	fmt.Println("te recooord: ", string(record.Value))
-	fmt.Println("te recooord: ", record.Offset)
-	fmt.Println("te recooord: ", record.Term)
-	fmt.Println("te recooord: ", record.Type)
-	// proto.Marshal(rec)
+func (l *Log) Append(record *models.Record) (uint64, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	off, err := l.activeSegment.Append(record)
 	if err != nil {
 		return 0, err
@@ -109,7 +97,8 @@ func (l *Log) Read(off uint64) (*models.Record, error) {
 		}
 	}
 	if s == nil || s.nextOffset <= off {
-		return nil, api.ErrOffsetOutOfRange{Offset: off}
+		// return nil, api.ErrOffsetOutOfRange{Offset: off}
+		return nil, errors.New("Offset out of range")
 	}
 	return s.Read(off)
 }
