@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
 
-	// "golang.org/x/net/context"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -126,6 +125,7 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 	if err != nil {
 		return err
 	}
+
 	if l.config.Raft.Bootstrap && !hasState {
 		configA := raft.Configuration{
 			Servers: []raft.Server{{
@@ -439,7 +439,7 @@ func (l *logStore) StoreLog(record *raft.Log) error {
 func (l *logStore) StoreLogs(records []*raft.Log) error {
 
 	for _, record := range records {
-		if _, err := l.Append(&api.Record{
+		if _, err := l.Append(&raftlog.Record{
 			Value: record.Data,
 			Term:  record.Term,
 			Type:  uint32(record.Type),
@@ -447,6 +447,7 @@ func (l *logStore) StoreLogs(records []*raft.Log) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -550,7 +551,7 @@ func (l *DistributedLog) Leave(id string) error {
 }
 
 func (l *DistributedLog) WaitForLeader(timeout time.Duration) error {
-	fmt.Println("set new leader")
+	fmt.Println("set new leader: ", l.raft.Leader())
 	timeoutc := time.After(timeout)
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()

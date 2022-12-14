@@ -1,9 +1,9 @@
 package raftlog
 
 import (
-	api "github.com/djedjethai/generation/api/v1/keyvalue"
+	"bytes"
+	"encoding/gob"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/proto"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -33,7 +33,7 @@ func TestLog(t *testing.T) {
 }
 
 func testAppendRead(t *testing.T, log *Log) {
-	append := &api.Record{
+	append := &Record{
 		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
@@ -47,12 +47,11 @@ func testAppendRead(t *testing.T, log *Log) {
 func testOutOfRangeErr(t *testing.T, log *Log) {
 	read, err := log.Read(1)
 	require.Nil(t, read)
-	apiErr := err.(api.ErrOffsetOutOfRange)
-	require.Equal(t, uint64(1), apiErr.Offset)
+	require.Error(t, err, "Offset out of range")
 }
 
 func testInitExisting(t *testing.T, o *Log) {
-	append := &api.Record{
+	append := &Record{
 		Value: []byte("hello world"),
 	}
 	for i := 0; i < 3; i++ {
@@ -77,7 +76,7 @@ func testInitExisting(t *testing.T, o *Log) {
 }
 
 func testReader(t *testing.T, log *Log) {
-	append := &api.Record{
+	append := &Record{
 		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
@@ -86,14 +85,16 @@ func testReader(t *testing.T, log *Log) {
 	reader := log.Reader()
 	b, err := ioutil.ReadAll(reader)
 	require.NoError(t, err)
-	read := &api.Record{}
-	err = proto.Unmarshal(b[lenWidth:], read)
+
+	breader := bytes.NewReader(b[lenWidth:])
+	var read Record
+	err = gob.NewDecoder(breader).Decode(&read)
 	require.NoError(t, err)
 	require.Equal(t, append.Value, read.Value)
 }
 
 func testTruncate(t *testing.T, log *Log) {
-	append := &api.Record{
+	append := &Record{
 		Value: []byte("hello world"),
 	}
 	for i := 0; i < 3; i++ {

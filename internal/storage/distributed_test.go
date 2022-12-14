@@ -1,23 +1,20 @@
 package storage
 
 import (
-	"fmt"
-
-	api "github.com/djedjethai/generation/api/v1/keyvalue"
-
 	"context"
+	"fmt"
+	api "github.com/djedjethai/generation/api/v1/keyvalue"
+	"github.com/djedjethai/generation/internal/models"
+	"github.com/djedjethai/generation/internal/observability"
+	"github.com/hashicorp/raft"
+	"github.com/stretchr/testify/require"
+	"github.com/travisjeffery/go-dynaport"
 	"io/ioutil"
 	"net"
 	"os"
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/djedjethai/generation/internal/models"
-	"github.com/djedjethai/generation/internal/observability"
-	"github.com/hashicorp/raft"
-	"github.com/stretchr/testify/require"
-	"github.com/travisjeffery/go-dynaport"
 )
 
 func TestMultipleNodes(t *testing.T) {

@@ -1,9 +1,9 @@
 package raftlog
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
-	api "github.com/djedjethai/generation/api/v1/keyvalue"
-	"google.golang.org/protobuf/proto"
 	"os"
 	"path"
 )
@@ -51,14 +51,17 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	return s, nil
 }
 
-func (s *segment) Append(record *api.Record) (offset uint64, err error) {
+func (s *segment) Append(record *Record) (offset uint64, err error) {
 	cur := s.nextOffset
 	record.Offset = cur
-	p, err := proto.Marshal(record)
+
+	var rec bytes.Buffer
+	err = gob.NewEncoder(&rec).Encode(record)
 	if err != nil {
 		return 0, err
 	}
-	_, pos, err := s.store.Append(p)
+
+	_, pos, err := s.store.Append(rec.Bytes())
 	if err != nil {
 		return 0, err
 	}
@@ -73,7 +76,7 @@ func (s *segment) Append(record *api.Record) (offset uint64, err error) {
 	return cur, nil
 }
 
-func (s *segment) Read(off uint64) (*api.Record, error) {
+func (s *segment) Read(off uint64) (*Record, error) {
 	_, pos, err := s.index.Read(int64(off - s.baseOffset))
 	if err != nil {
 		return nil, err
@@ -82,9 +85,15 @@ func (s *segment) Read(off uint64) (*api.Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	record := &api.Record{}
-	err = proto.Unmarshal(p, record)
-	return record, err
+
+	reader := bytes.NewReader(p)
+	var record Record
+	err = gob.NewDecoder(reader).Decode(&record)
+	if err != nil {
+		return nil, err
+	}
+
+	return &record, err
 }
 
 func (s *segment) IsMaxed() bool {
