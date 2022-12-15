@@ -1,10 +1,12 @@
 package discovery
 
 import (
+	// "fmt"
+	"net"
+
 	"github.com/hashicorp/raft"
 	"github.com/hashicorp/serf/serf"
 	"go.uber.org/zap"
-	"net"
 )
 
 type Handler interface {

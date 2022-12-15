@@ -13,10 +13,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	_, teardown, err := agent.New(cfg)
+	_, err = agent.New(cfg)
 	if err != nil {
 		log.Println("the err from setting the agent: ", err)
 	}
-	defer teardown()
-
 }

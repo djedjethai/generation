@@ -24,7 +24,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type DistributedLog struct {
+type DistributedStorage struct {
 	logConfig raftlog.Config
 	config    Config
 	log       *raftlog.Log
@@ -32,8 +32,8 @@ type DistributedLog struct {
 	raft      *raft.Raft
 }
 
-func NewDistributedLog(dataDir string, conf Config, nShard, maxLgt int, observ *observability.Observability) (*DistributedLog, error) {
-	l := &DistributedLog{
+func NewDistributedStorage(dataDir string, conf Config, nShard, maxLgt int, observ *observability.Observability) (*DistributedStorage, error) {
+	l := &DistributedStorage{
 		logConfig: raftlog.Config{},
 		config:    conf,
 	}
@@ -47,7 +47,7 @@ func NewDistributedLog(dataDir string, conf Config, nShard, maxLgt int, observ *
 	return l, nil
 }
 
-func (l *DistributedLog) setupShardedMap(nShard, maxLgt int, observ *observability.Observability) error {
+func (l *DistributedStorage) setupShardedMap(nShard, maxLgt int, observ *observability.Observability) error {
 	if nShard < 1 || maxLgt < 1 {
 		return errors.New("Storage needs some rooms")
 	}
@@ -56,7 +56,7 @@ func (l *DistributedLog) setupShardedMap(nShard, maxLgt int, observ *observabili
 	return nil
 }
 
-func (l *DistributedLog) setupRaft(dataDir string) error {
+func (l *DistributedStorage) setupRaft(dataDir string) error {
 	fsm := &fsm{sm: l.sm}
 	logDir := filepath.Join(dataDir, "raft", "log")
 	if err := os.MkdirAll(logDir, 0755); err != nil {
@@ -140,7 +140,7 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 }
 
 // should have Put/Get/Delete
-func (l *DistributedLog) Set(ctx context.Context, key string, value interface{}) error {
+func (l *DistributedStorage) Set(ctx context.Context, key string, value interface{}) error {
 	_, err := l.apply(
 		SetRequestType,
 		&api.Records{
@@ -154,7 +154,7 @@ func (l *DistributedLog) Set(ctx context.Context, key string, value interface{})
 	return nil
 }
 
-func (l *DistributedLog) Get(ctx context.Context, key string) (interface{}, error) {
+func (l *DistributedStorage) Get(ctx context.Context, key string) (interface{}, error) {
 	res, err := l.apply(
 		GetRequestType,
 		&api.Records{
@@ -167,7 +167,7 @@ func (l *DistributedLog) Get(ctx context.Context, key string) (interface{}, erro
 	return res, nil
 }
 
-func (l *DistributedLog) Delete(ctx context.Context, key string) error {
+func (l *DistributedStorage) Delete(ctx context.Context, key string, sh *Shard) error {
 	_, err := l.apply(
 		DeleteRequestType,
 		&api.Records{
@@ -182,18 +182,18 @@ func (l *DistributedLog) Delete(ctx context.Context, key string) error {
 
 // no replication to followers nodes
 // will be access directly from followers nodes
-func (l *DistributedLog) Keys(ctx context.Context) []string {
+func (l *DistributedStorage) Keys(ctx context.Context) []string {
 	return l.sm.Keys(ctx)
 }
 
 // no replication to followers nodes
 // will be access directly from followers nodes
-func (l *DistributedLog) KeysValues(ctx context.Context, ch chan models.KeysValues) error {
+func (l *DistributedStorage) KeysValues(ctx context.Context, ch chan models.KeysValues) error {
 	return l.sm.KeysValues(ctx, ch)
 }
 
 // for testing purpose only
-func (l *DistributedLog) Read(ctx context.Context, key string) (string, error) {
+func (l *DistributedStorage) Read(ctx context.Context, key string) (string, error) {
 	val, err := l.sm.Get(ctx, key)
 	if err != nil {
 		return "", err
@@ -202,7 +202,7 @@ func (l *DistributedLog) Read(ctx context.Context, key string) (string, error) {
 }
 
 // apply will switch on the RequestType(Put/Get/Delete)
-func (l *DistributedLog) apply(reqType RequestType, req proto.Message) (interface{}, error) {
+func (l *DistributedStorage) apply(reqType RequestType, req proto.Message) (interface{}, error) {
 	var buf bytes.Buffer
 	_, err := buf.Write([]byte{byte(reqType)})
 	if err != nil {
@@ -284,11 +284,11 @@ func (l *fsm) applySet(b []byte) interface{} {
 	return err
 }
 
+// Get should return (interface{}, error) but raft accept only a single value
 func (l *fsm) applyGet(b []byte) interface{} {
 	var req api.GetRequest
 	err := proto.Unmarshal(b, &req)
 	if err != nil {
-		fmt.Println("seee the get err: ", err)
 		return err
 	}
 
@@ -299,9 +299,6 @@ func (l *fsm) applyGet(b []byte) interface{} {
 		return err
 	}
 
-	// will return the expected response from the method executed on the storage
-	// return ndVal, err
-	// TODO here I cut the err .....
 	return ndVal
 }
 
@@ -518,7 +515,7 @@ func (s *StreamLayer) Addr() net.Addr {
 	return s.ln.Addr()
 }
 
-func (l *DistributedLog) Join(id, addr string) error {
+func (l *DistributedStorage) Join(id, addr string) error {
 	configFuture := l.raft.GetConfiguration()
 	if err := configFuture.Error(); err != nil {
 		return err
@@ -545,13 +542,12 @@ func (l *DistributedLog) Join(id, addr string) error {
 	return nil
 }
 
-func (l *DistributedLog) Leave(id string) error {
+func (l *DistributedStorage) Leave(id string) error {
 	removeFuture := l.raft.RemoveServer(raft.ServerID(id), 0, 0)
 	return removeFuture.Error()
 }
 
-func (l *DistributedLog) WaitForLeader(timeout time.Duration) error {
-	fmt.Println("set new leader: ", l.raft.Leader())
+func (l *DistributedStorage) WaitForLeader(timeout time.Duration) error {
 	timeoutc := time.After(timeout)
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
@@ -567,7 +563,7 @@ func (l *DistributedLog) WaitForLeader(timeout time.Duration) error {
 	}
 }
 
-func (l *DistributedLog) Close() error {
+func (l *DistributedStorage) Close() error {
 	f := l.raft.Shutdown()
 	if err := f.Error(); err != nil {
 		return err

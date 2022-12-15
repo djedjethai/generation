@@ -130,7 +130,7 @@ func (m ShardedMap) Get(ctx context.Context, key string) (interface{}, error) {
 	} else if nd.valFloat != 0 {
 		return nd.valFloat, nil
 	} else {
-		return nil, nil
+		return "", nil
 	}
 }
 
