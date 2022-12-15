@@ -13,8 +13,8 @@ import (
 
 //go:generate mockgen -destination=../mocks/getter/mockGetter.go -package=getter github.com/djedjethai/generation/internal/getter Getter
 type Getter interface {
-	// Get(context.Context, string) (interface{}, error)
-	Get(context.Context, string) interface{}
+	Get(context.Context, string) (interface{}, error)
+	// Get(context.Context, string) interface{}
 	GetKeys(context.Context) []string
 	GetKeysValues(context.Context, chan models.KeysValues) error
 }
@@ -24,15 +24,15 @@ type getter struct {
 	obs *observability.Observability
 }
 
-func NewGetter(s storage.ShardedMap, observ *observability.Observability) Getter {
+func NewGetter(s storage.StorageRepo, observ *observability.Observability) Getter {
 	return &getter{
 		st:  s,
 		obs: observ,
 	}
 }
 
-// func (s *getter) Get(ctx context.Context, key string) (interface{}, error) {
-func (s *getter) Get(ctx context.Context, key string) interface{} {
+func (s *getter) Get(ctx context.Context, key string) (interface{}, error) {
+	// func (s *getter) Get(ctx context.Context, key string) interface{} {
 
 	s.obs.Logger.Debug("Getter/Get()", "hit func")
 
@@ -44,11 +44,11 @@ func (s *getter) Get(ctx context.Context, key string) interface{} {
 	value, err := s.st.Get(ctx, key)
 	if err != nil {
 		s.obs.Logger.Warning("Getter/Get() failed", fmt.Sprintf("%v", err))
-		return err
+		return nil, err
 	}
 
 	s.obs.Logger.Debug("Getter/Get()", "executed successfully")
-	return value
+	return value, nil
 }
 
 func (s *getter) GetKeys(ctx context.Context) []string {

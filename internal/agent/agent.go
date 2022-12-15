@@ -78,7 +78,8 @@ func (c Config) RPCAddr() (string, error) {
 
 func New(cfg Config) (*Agent, error) {
 	a := &Agent{
-		config: cfg,
+		config:    cfg,
+		shutdowns: make(chan struct{}),
 	}
 
 	err := a.setupMux()
@@ -211,7 +212,7 @@ func (a *Agent) setupServers() error {
 
 func (a *Agent) runGRPC() error {
 	// TODO remove that, it should go trought the config
-	l, _ := net.Listen("tcp", fmt.Sprintf("%s:%d", "127.0.0.1", a.config.PortGRPC))
+	// l, _ := net.Listen("tcp", fmt.Sprintf("%s:%d", "127.0.0.1", a.config.PortGRPC))
 	// TODO if run in docker
 	// l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", a.config.PortGRPC))
 	// 	if err != nil {
@@ -220,13 +221,13 @@ func (a *Agent) runGRPC() error {
 
 	// TODO to remove into configs...
 	// set tls
-	serverTLSConfig, _ := config.SetupTLSConfig(config.TLSConfig{
-		CertFile:      config.ServerCertFile,
-		KeyFile:       config.ServerKeyFile,
-		CAFile:        config.CAFile,
-		ServerAddress: l.Addr().String(),
-	})
-	a.config.ServerTLSConfig = serverTLSConfig
+	// serverTLSConfig, _ := config.SetupTLSConfig(config.TLSConfig{
+	// 	CertFile:      config.ServerCertFile,
+	// 	KeyFile:       config.ServerKeyFile,
+	// 	CAFile:        config.CAFile,
+	// 	ServerAddress: l.Addr().String(),
+	// })
+	// a.config.ServerTLSConfig = serverTLSConfig
 	// end to remove
 
 	var opts []gglGrpc.ServerOption

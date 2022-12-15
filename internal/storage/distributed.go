@@ -167,7 +167,7 @@ func (l *DistributedStorage) Get(ctx context.Context, key string) (interface{}, 
 	return res, nil
 }
 
-func (l *DistributedStorage) Delete(ctx context.Context, key string) error {
+func (l *DistributedStorage) Delete(ctx context.Context, key string, sh *Shard) error {
 	_, err := l.apply(
 		DeleteRequestType,
 		&api.Records{

@@ -108,7 +108,7 @@ func TestMultipleNodes(t *testing.T) {
 	require.Equal(t, "thirdValue", record)
 
 	// delete the thirdKey
-	err = logs[0].Delete(ctx, "thirdKey")
+	err = logs[0].Delete(ctx, "thirdKey", nil)
 	require.NoError(t, err)
 
 	// wait a little for raft leader to replicate to followers
