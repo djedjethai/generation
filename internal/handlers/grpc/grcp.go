@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	// "fmt"
 
 	pb "github.com/djedjethai/generation/api/v1/keyvalue"
@@ -40,7 +41,6 @@ func newgrpcserver(services *config.Services, loggerFacade *logger.LoggerFacade)
 }
 
 func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
-	// TODO
 
 	// fmt.Println("seeee grrr: ", r.Records.Key)
 	err := s.Services.Setter.Set(ctx, r.Records.Key, []byte(r.Records.Value))
@@ -55,6 +55,8 @@ func (s *Server) Get(ctx context.Context, r *pb.GetRequest) (*pb.GetResponse, er
 
 	value, err := s.Services.Getter.Get(ctx, r.Key)
 
+	// TODO if implement other types, the type assertion will have to be adapt
+	// if value == "" grpc return it as nil
 	return &pb.GetResponse{Value: value.(string)}, err
 }
 
@@ -87,6 +89,7 @@ func (s *Server) GetKeysValuesStream(r *pb.Empty, stream pb.KeyValue_GetKeysValu
 			go func() {
 				err := s.Services.Getter.GetKeysValues(ctx, kv)
 				if err != nil {
+					fmt.Println("see the GetKeysValuesStream:::::: ", err)
 					// return err
 				}
 			}()

@@ -3,9 +3,12 @@ package agent
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -97,7 +100,6 @@ func TestAgent(t *testing.T) {
 	time.Sleep(3 * time.Second)
 	leaderClient := client(t, agents[0], peerTLSConfig)
 
-	fmt.Println("la mmmeeerdddr3333 ...............")
 	// put 2 values(from leader)
 	_, err = leaderClient.Put(
 		context.Background(),
@@ -108,10 +110,19 @@ func TestAgent(t *testing.T) {
 			},
 		},
 	)
-	fmt.Println("la mmmeeerdddr444444 ...............", err)
 	require.NoError(t, err)
 
-	fmt.Println("la mmmeeerdddr5555 ...............")
+	_, err = leaderClient.Put(
+		context.Background(),
+		&api.PutRequest{
+			Records: &api.Records{
+				Key:   "key2",
+				Value: "value2",
+			},
+		},
+	)
+	require.NoError(t, err)
+
 	// get one value(from leader)
 	consume, err := leaderClient.Get(
 		context.Background(),
@@ -119,39 +130,89 @@ func TestAgent(t *testing.T) {
 			Key: "key1",
 		},
 	)
-	fmt.Println("la mmmeeerdddr6666 ...............", consume.Value)
 	require.NoError(t, err)
 	require.Equal(t, consume.Value, "value1")
 
-	// time.Sleep(3 * time.Second)
-	//
-	// // get all keys(from follower)
-	// followerClient := client(t, agents[1], peerTLSConfig)
-	// consumeResponse, err = followerClient.Consume(
-	// 	context.Background(),
-	// 	&api.ConsumeRequest{
-	// 		Offset: produceResponse.Offset,
-	// 	},
-	// )
-	// require.NoError(t, err)
-	// require.Equal(t, consumeResponse.Record.Value, []byte("foo"))
+	// get an invalid key
+	consume, err = leaderClient.Get(
+		context.Background(),
+		&api.GetRequest{
+			Key: "key3",
+		},
+	)
+	// TODO set an GRPC err..... ???
+	require.Error(t, err, "need to set a grpc err")
+	require.Nil(t, consume)
 
-	// // get all keysvalues(from follower)
-	// consumeResponse, err = leaderClient.Consume(
-	// 	context.Background(),
-	// 	&api.ConsumeRequest{
-	// 		Offset: produceResponse.Offset + 1,
-	// 	},
-	// )
-	// require.Nil(t, consumeResponse)
-	// require.Error(t, err)
-	// got := grpc.Code(err)
-	// want := grpc.Code(api.ErrOffsetOutOfRange{}.GRPCStatus().Err())
-	// require.Equal(t, got, want)
+	// wait for propagation
+	time.Sleep(3 * time.Second)
 
-	// //  delete a key(from leader)
+	// get all keys(from follower)
+	followerClient := client(t, agents[1], peerTLSConfig)
+	response, err := followerClient.GetKeys(
+		context.Background(),
+		&api.GetKeysRequest{},
+	)
+	require.NoError(t, err)
+	require.Equal(t, len(response.Keys), 2)
 
-	// // get all keys(from leader), make sure the deleted one is gone
+	// get all keysvalues(from follower)
+	keysvalues, err := followerClient.GetKeysValuesStream(
+		context.Background(),
+		&api.Empty{},
+	)
+
+	var keys []string
+	var values []string
+	var strErr = false
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		for {
+			select {
+			case <-keysvalues.Context().Done():
+				return
+			default:
+				res, err := keysvalues.Recv()
+				if errors.Is(err, io.EOF) {
+					_ = keysvalues.CloseSend()
+					return
+				}
+				if err != nil {
+					strErr = true
+					_ = keysvalues.CloseSend()
+					return
+				}
+				keys = append(keys, res.Records.Key)
+				values = append(values, res.Records.Value)
+				wg.Done()
+			}
+		}
+	}()
+	wg.Wait()
+	require.Equal(t, false, strErr)
+	require.Equal(t, len(keys), 2)
+	require.Equal(t, len(values), 2)
+
+	//  delete a key(from leader)
+	_, err = leaderClient.Delete(
+		context.Background(),
+		&api.DeleteRequest{
+			Key: "key1",
+		},
+	)
+	require.NoError(t, err)
+
+	// wait for propagation
+	time.Sleep(3 * time.Second)
+
+	// get all keys(from leader), make sure the deleted one is gone
+	response, err = followerClient.GetKeys(
+		context.Background(),
+		&api.GetKeysRequest{},
+	)
+	require.NoError(t, err)
+	require.Equal(t, len(response.Keys), 1)
 }
 
 func client(t *testing.T, agent *Agent, tlsConfig *tls.Config) api.KeyValueClient {

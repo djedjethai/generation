@@ -44,7 +44,8 @@ func (s *getter) Get(ctx context.Context, key string) (interface{}, error) {
 	value, err := s.st.Get(ctx, key)
 	if err != nil {
 		s.obs.Logger.Warning("Getter/Get() failed", fmt.Sprintf("%v", err))
-		return nil, err
+		// in case of err the handler expect a string as value
+		return "", err
 	}
 
 	s.obs.Logger.Debug("Getter/Get()", "executed successfully")

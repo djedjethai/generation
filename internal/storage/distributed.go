@@ -284,11 +284,11 @@ func (l *fsm) applySet(b []byte) interface{} {
 	return err
 }
 
+// Get should return (interface{}, error) but raft accept only a single value
 func (l *fsm) applyGet(b []byte) interface{} {
 	var req api.GetRequest
 	err := proto.Unmarshal(b, &req)
 	if err != nil {
-		fmt.Println("seee the get err: ", err)
 		return err
 	}
 
@@ -299,9 +299,6 @@ func (l *fsm) applyGet(b []byte) interface{} {
 		return err
 	}
 
-	// will return the expected response from the method executed on the storage
-	// return ndVal, err
-	// TODO here I cut the err .....
 	return ndVal
 }
 
@@ -551,7 +548,6 @@ func (l *DistributedStorage) Leave(id string) error {
 }
 
 func (l *DistributedStorage) WaitForLeader(timeout time.Duration) error {
-	fmt.Println("set new leader: ", l.raft.Leader())
 	timeoutc := time.After(timeout)
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
