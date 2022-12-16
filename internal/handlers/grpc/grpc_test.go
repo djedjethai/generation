@@ -2,11 +2,6 @@ package grpc
 
 import (
 	"context"
-	// "fmt"
-	"net"
-	"reflect"
-	"testing"
-
 	pb "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/internal/config"
 	"github.com/djedjethai/generation/internal/deleter"
@@ -16,9 +11,14 @@ import (
 	"github.com/djedjethai/generation/internal/setter"
 	"github.com/djedjethai/generation/internal/storage"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc"
+	"net"
+	"reflect"
+	"testing"
+	// "google.golang.org/genproto/googleapis/rpc/errdetails"
+	// "google.golang.org/grpc"
 	gglGrpc "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
 )
 
 func setupTest(t *testing.T) (pb.KeyValueClient, func()) {
@@ -40,7 +40,7 @@ func setupTest(t *testing.T) (pb.KeyValueClient, func()) {
 	// cc, err := gglGrpc.Dial(l.Addr().String(), clientOptions...)
 	cc, err := gglGrpc.Dial(
 		l.Addr().String(),
-		grpc.WithTransportCredentials(clientCreds),
+		gglGrpc.WithTransportCredentials(clientCreds),
 	)
 	require.NoError(t, err)
 
@@ -123,6 +123,40 @@ func TestGet(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, want.Value, resp.Value)
+}
+
+func TestGetErr(t *testing.T) {
+	cl, teardown := setupTest(t)
+	defer teardown()
+
+	ctx := context.Background()
+
+	_, err := cl.Put(ctx, &pb.PutRequest{
+		Records: &pb.Records{
+			Key:   "key",
+			Value: "value",
+		},
+	})
+	require.NoError(t, err)
+
+	resp, err := cl.Get(ctx, &pb.GetRequest{
+		Key: "unknowKey",
+	})
+
+	require.Nil(t, resp)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	require.Equal(t, st.Code().String(), "Code(404)")
+
+	// err details could be extract like this...
+	// for _, detail := range st.Details() {
+	// 	switch t := detail.(type) {
+	// 	case *errdetails.LocalizedMessage:
+	// 		// send t.Message back to the user
+	// 		fmt.Println("thee ttt: ", t)
+	// 	}
+	// }
+	// fmt.Println("see err message: ", st.Message())
 }
 
 func TestGetKeys(t *testing.T) {

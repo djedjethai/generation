@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
+
 	// "fmt"
 
 	pb "github.com/djedjethai/generation/api/v1/keyvalue"
@@ -10,6 +11,7 @@ import (
 	"github.com/djedjethai/generation/internal/logger"
 	"github.com/djedjethai/generation/internal/models"
 	"google.golang.org/grpc"
+	// "google.golang.org/grpc/status"
 )
 
 type Server struct {
@@ -42,7 +44,6 @@ func newgrpcserver(services *config.Services, loggerFacade *logger.LoggerFacade)
 
 func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
 
-	// fmt.Println("seeee grrr: ", r.Records.Key)
 	err := s.Services.Setter.Set(ctx, r.Records.Key, []byte(r.Records.Value))
 	if err == nil {
 		s.LoggerFacade.WriteSet(string(r.Records.Key), string(r.Records.Value))
@@ -54,6 +55,14 @@ func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, er
 func (s *Server) Get(ctx context.Context, r *pb.GetRequest) (*pb.GetResponse, error) {
 
 	value, err := s.Services.Getter.Get(ctx, r.Key)
+	if err != nil {
+		if err.Error() == "no such key" {
+			// return &pb.GetResponse{Value: value.(string)}, status.Error(404, "and now")
+			return &pb.GetResponse{Value: value.(string)}, pb.ErrorNoSuchKey{Key: r.Key}.RetErr()
+		} else {
+			return &pb.GetResponse{Value: value.(string)}, err
+		}
+	}
 
 	// TODO if implement other types, the type assertion will have to be adapt
 	// if value == "" grpc return it as nil
