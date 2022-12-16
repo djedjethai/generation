@@ -14,7 +14,7 @@ func setup() {
 
 	obs := observability.Observability{}
 
-	deleterMocked = deleter{storage, obs}
+	deleterMocked = deleter{storage, &obs}
 }
 
 func Test_delete_return_nil_if_no_err(t *testing.T) {

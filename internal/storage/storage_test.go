@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"github.com/djedjethai/generation/internal/models"
 	"github.com/djedjethai/generation/internal/observability"
 	"testing"
@@ -16,7 +15,6 @@ func Test_put(t *testing.T) {
 
 	shard := shardedMap.getShard("test")
 
-	// fmt.Println("grrr: ", shardedMap.Keys())
 	if shard.m["test"].val != "put" {
 		t.Error("err in store Put() failed")
 	}
@@ -41,7 +39,6 @@ func Test_keys(t *testing.T) {
 
 	keys := shardedMap.Keys(ctx)
 
-	fmt.Println("see keys: ", keys)
 	if len(keys) != 1 && keys[0] != "test" {
 		t.Error("err in store Keys() failed")
 	}
@@ -74,7 +71,7 @@ func Test_get_keys_values(t *testing.T) {
 
 	err := shardedMap.KeysValues(ctx, kv)
 	if err != nil {
-		fmt.Println("err: ", err)
+		t.Error("err in store TestGetKeysValues, .KeysValues() return an err: ", err)
 	}
 
 	var res = make(map[string]string)
@@ -95,7 +92,7 @@ func Test_storage_keep_the_setted_size_with_one_shard_and_many_items_per_shard(t
 	ctx := context.Background()
 	obs := observability.Observability{}
 
-	sm := NewShardedMap(1, 2, &obs)
+	sm := NewShardedMap(1, 3, &obs)
 	sm.Set(ctx, "key1", "val1")
 	sm.Set(ctx, "key2", "val2")
 	sm.Set(ctx, "key3", "val3")
@@ -106,33 +103,108 @@ func Test_storage_keep_the_setted_size_with_one_shard_and_many_items_per_shard(t
 	_, t2 := sm.shd[0].m["key2"]
 	_, t3 := sm.shd[0].m["key3"]
 	_, t4 := sm.shd[0].m["key4"]
-	if t1 || t2 || !t3 || !t4 {
+	if t1 || !t2 || !t3 || !t4 {
 		t.Error("err t3 or/and t4 in store TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard")
 	}
 
-	ks := sm.Keys(ctx)
-	if len(ks) != 2 || ks[0] != "key3" || ks[1] != "key4" {
+	head := sm.shd[0].dll.head.val
+	middle := sm.shd[0].dll.head.next.val
+	tail := sm.shd[0].dll.tail.val
+
+	if head != "val4" || middle != "val3" || tail != "val2" {
 		t.Error("err in store TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard")
 	}
 }
 
-// TODO look like we have a pb here....
-// make sure the fixed size is respected when many shards and a single item for each shard
-func Test_storage_keep_the_setted_size_many_shard_and_one_item_per_shard(t *testing.T) {
+// make sure the fixed size is respected when one shard and many items for this shard
+func Test_storage_delete_and_unshift_item_when_item_already_exist(t *testing.T) {
 
 	ctx := context.Background()
 	obs := observability.Observability{}
 
-	sm := NewShardedMap(2, 1, &obs)
+	sm := NewShardedMap(1, 3, &obs)
 	sm.Set(ctx, "key1", "val1")
 	sm.Set(ctx, "key2", "val2")
 	sm.Set(ctx, "key3", "val3")
 	sm.Set(ctx, "key4", "val4")
+	sm.Set(ctx, "key3", "val3")
 
-	ks := sm.Keys(ctx)
-	if len(ks) != 2 || ks[0] != "key4" || ks[1] != "key3" {
-		t.Error("err in store TestStorageKeepTheSettedSizeManyShardAnsOneItemPerShard")
+	// check the remained element into the dll
+	_, t1 := sm.shd[0].m["key1"]
+	_, t2 := sm.shd[0].m["key2"]
+	_, t3 := sm.shd[0].m["key3"]
+	_, t4 := sm.shd[0].m["key4"]
+	if t1 || !t2 || !t3 || !t4 {
+		t.Error("err t3 or/and t4 in store TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard")
 	}
+
+	head := sm.shd[0].dll.head.val
+	middle := sm.shd[0].dll.head.next.val
+	tail := sm.shd[0].dll.tail.val
+
+	if head != "val3" || middle != "val4" || tail != "val2" {
+		t.Error("err in store TestStorageKeepTheSettedSizeWithOneShardAnsManyItemsPerShard")
+	}
+}
+
+// make sure the last item is removed(from dll and map) from the list(if over storage size)
+func Test_item_has_been_properly_removed_when_outbound_the_storage_size(t *testing.T) {
+
+	ctx := context.Background()
+	obs := observability.Observability{}
+
+	sm := NewShardedMap(1, 2, &obs)
+	sm.Set(ctx, "key1", "val1")
+	sm.Set(ctx, "key3", "val3")
+	sm.Set(ctx, "key3", "val3")
+	sm.Set(ctx, "key4", "val4")
+
+	head := sm.shd[0].dll.head.val
+	headNext := sm.shd[0].dll.head.next.val
+	tail := sm.shd[0].dll.tail.val
+	tailPrev := sm.shd[0].dll.tail.prev.val
+	_, map1 := sm.shd[0].m["key1"]
+	_, map2 := sm.shd[0].m["key2"]
+	_, map3 := sm.shd[0].m["key3"]
+	_, map4 := sm.shd[0].m["key4"]
+	if head != "val4" ||
+		tail != "val3" ||
+		headNext != tail ||
+		head != tailPrev ||
+		map1 || map2 || !map3 || !map4 {
+		t.Error("err in store test ItemHasBeenProperlyRemovedWhenOutboud1")
+	}
+
+	sm.Set(ctx, "key3", "val3")
+	head = sm.shd[0].dll.head.val
+	headNext = sm.shd[0].dll.head.next.val
+	tail = sm.shd[0].dll.tail.val
+	tailPrev = sm.shd[0].dll.tail.prev.val
+	_, map3 = sm.shd[0].m["key3"]
+	_, map4 = sm.shd[0].m["key4"]
+	if head != "val3" ||
+		tail != "val4" ||
+		headNext != tail ||
+		head != tailPrev ||
+		!map3 || !map4 {
+		t.Error("err in store test ItemHasBeenProperlyRemovedWhenOutboud2")
+	}
+
+	sm.Set(ctx, "key3", "val3")
+	head = sm.shd[0].dll.head.val
+	headNext = sm.shd[0].dll.head.next.val
+	tail = sm.shd[0].dll.tail.val
+	tailPrev = sm.shd[0].dll.tail.prev.val
+	_, map3 = sm.shd[0].m["key3"]
+	_, map4 = sm.shd[0].m["key4"]
+	if head != "val3" ||
+		tail != "val4" ||
+		headNext != tail ||
+		head != tailPrev ||
+		!map3 || !map4 {
+		t.Error("err in store test ItemHasBeenProperlyRemovedWhenOutboud3")
+	}
+
 }
 
 // make sure a key won't be repeated twice

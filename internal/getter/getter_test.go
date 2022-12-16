@@ -18,7 +18,7 @@ func setup() {
 
 	str := storage.NewMockedShardedMap(1, 5)
 
-	getterMocked = getter{str, obs}
+	getterMocked = getter{str, &obs}
 }
 
 func Test_get_return_a_value_and_no_error(t *testing.T) {

@@ -46,10 +46,10 @@ func setupTest(t *testing.T) (pb.KeyValueClient, func()) {
 
 	// set service
 	obs := observability.Observability{}
-	shardedMap := storage.NewShardedMap(2, 10, obs)
-	setSrv := setter.NewSetter(shardedMap, obs)
-	getSrv := getter.NewGetter(shardedMap, obs)
-	delSrv := deleter.NewDeleter(shardedMap, obs)
+	shardedMap := storage.NewShardedMap(2, 10, &obs)
+	setSrv := setter.NewSetter(shardedMap, &obs)
+	getSrv := getter.NewGetter(shardedMap, &obs)
+	delSrv := deleter.NewDeleter(shardedMap, &obs)
 	postgresConfig := config.PostgresDBParams{}
 	srv := config.Services{setSrv, getSrv, delSrv}
 	loggerFacade, err := lgr.NewLoggerFacade(srv, false, postgresConfig)

@@ -14,7 +14,7 @@ func setup() {
 
 	storage := storage.NewMockedShardedMap(1, 0)
 
-	setterMocked = setter{storage, obs}
+	setterMocked = setter{storage, &obs}
 
 }
 

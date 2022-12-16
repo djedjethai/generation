@@ -3,12 +3,9 @@ package storage
 import (
 	"context"
 	"errors"
-	// "fmt"
-	"sync"
-
-	// "github.com/djedjethai/generation/internal/config"
 	"github.com/djedjethai/generation/internal/models"
 	"github.com/djedjethai/generation/internal/observability"
+	"sync"
 )
 
 var ErrorNoSuchKey = errors.New("no such key")
