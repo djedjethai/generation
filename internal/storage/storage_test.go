@@ -7,9 +7,31 @@ import (
 	"testing"
 )
 
+func Test_storage(t *testing.T) {
+	for scenario, fn := range map[string]func(
+		t *testing.T, sm ShardedMap, ctx context.Context,
+	){
+		"put":                             testPut,
+		"get":                             testGet,
+		"keys":                            testKeys,
+		"delete":                          testDelete,
+		"getKeysValues":                   testGetKeysValues,
+		"keepSettedSizeOneShardManyItems": testStorageKeepSettedSizeOneShardManyItems,
+		"storageDeleteUnshiftItemWhenItemAlreadyExist":      testStorageDeleteUnshiftItemWhenItemAlreadyExist,
+		"itemHasBeenproperlyRemovedWhenOutboundStorageSize": testHasBeenProperlyRemovedWhenOutboundStorageSize,
+		"storageNotStoreTheSameKeyTwice":                    testStorageNotStoreTheSameKeyTwice,
+	} {
+		t.Run(scenario, func(t *testing.T) {
+			obs := observability.Observability{}
+			shardedMap := NewShardedMap(3, 10, &obs)
+			ctx := context.Background()
+			fn(t, shardedMap, ctx)
+		})
+	}
+}
+
 // test Put
-func Test_put(t *testing.T) {
-	ctx := context.Background()
+func testPut(t *testing.T, shardedMap ShardedMap, ctx context.Context) {
 
 	_ = shardedMap.Set(ctx, "test", "put")
 
@@ -21,9 +43,8 @@ func Test_put(t *testing.T) {
 }
 
 // test Get
-func Test_get(t *testing.T) {
-
-	ctx := context.Background()
+func testGet(t *testing.T, shardedMap ShardedMap, ctx context.Context) {
+	_ = shardedMap.Set(ctx, "test", "put")
 
 	dt, _ := shardedMap.Get(ctx, "test")
 
@@ -33,9 +54,8 @@ func Test_get(t *testing.T) {
 }
 
 // test get all Keys
-func Test_keys(t *testing.T) {
-
-	ctx := context.Background()
+func testKeys(t *testing.T, shardedMap ShardedMap, ctx context.Context) {
+	_ = shardedMap.Set(ctx, "test", "put")
 
 	keys := shardedMap.Keys(ctx)
 
@@ -45,10 +65,7 @@ func Test_keys(t *testing.T) {
 }
 
 // test delete
-func Test_delete(t *testing.T) {
-
-	ctx := context.Background()
-
+func testDelete(t *testing.T, shardedMap ShardedMap, ctx context.Context) {
 	_ = shardedMap.Delete(ctx, "test", nil)
 
 	shard := shardedMap.getShard("test")
@@ -59,10 +76,7 @@ func Test_delete(t *testing.T) {
 }
 
 // test getKeysValues
-func Test_get_keys_values(t *testing.T) {
-
-	ctx := context.Background()
-
+func testGetKeysValues(t *testing.T, shardedMap ShardedMap, ctx context.Context) {
 	shardedMap.Set(ctx, "key1", "value1")
 	shardedMap.Set(ctx, "key2", "value2")
 	shardedMap.Set(ctx, "key3", "value3")
@@ -87,9 +101,7 @@ func Test_get_keys_values(t *testing.T) {
 }
 
 // make sure the fixed size is respected when one shard and many items for this shard
-func Test_storage_keep_the_setted_size_with_one_shard_and_many_items_per_shard(t *testing.T) {
-
-	ctx := context.Background()
+func testStorageKeepSettedSizeOneShardManyItems(t *testing.T, shardedMap ShardedMap, ctx context.Context) {
 	obs := observability.Observability{}
 
 	sm := NewShardedMap(1, 3, &obs)
@@ -117,9 +129,7 @@ func Test_storage_keep_the_setted_size_with_one_shard_and_many_items_per_shard(t
 }
 
 // make sure the fixed size is respected when one shard and many items for this shard
-func Test_storage_delete_and_unshift_item_when_item_already_exist(t *testing.T) {
-
-	ctx := context.Background()
+func testStorageDeleteUnshiftItemWhenItemAlreadyExist(t *testing.T, shardedMap ShardedMap, ctx context.Context) {
 	obs := observability.Observability{}
 
 	sm := NewShardedMap(1, 3, &obs)
@@ -148,9 +158,7 @@ func Test_storage_delete_and_unshift_item_when_item_already_exist(t *testing.T) 
 }
 
 // make sure the last item is removed(from dll and map) from the list(if over storage size)
-func Test_item_has_been_properly_removed_when_outbound_the_storage_size(t *testing.T) {
-
-	ctx := context.Background()
+func testHasBeenProperlyRemovedWhenOutboundStorageSize(t *testing.T, shardedMap ShardedMap, ctx context.Context) {
 	obs := observability.Observability{}
 
 	sm := NewShardedMap(1, 2, &obs)
@@ -208,9 +216,7 @@ func Test_item_has_been_properly_removed_when_outbound_the_storage_size(t *testi
 }
 
 // make sure a key won't be repeated twice
-func Test_storage_do_not_store_the_same_key_twice(t *testing.T) {
-
-	ctx := context.Background()
+func testStorageNotStoreTheSameKeyTwice(t *testing.T, shardedMap ShardedMap, ctx context.Context) {
 	obs := observability.Observability{}
 
 	sm := NewShardedMap(2, 2, &obs)
