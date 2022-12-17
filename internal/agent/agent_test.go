@@ -19,6 +19,7 @@ import (
 	"github.com/travisjeffery/go-dynaport"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
 )
 
 func TestAgent(t *testing.T) {
@@ -140,9 +141,11 @@ func TestAgent(t *testing.T) {
 			Key: "key3",
 		},
 	)
-	// TODO set an GRPC err..... ???
-	require.Error(t, err, "need to set a grpc err")
 	require.Nil(t, consume)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	require.Equal(t, st.Code().String(), "Code(404)")
+	require.Equal(t, st.Message(), fmt.Sprintf("No such key: key3"))
 
 	// wait for propagation
 	time.Sleep(3 * time.Second)
