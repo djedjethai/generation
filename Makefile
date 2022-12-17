@@ -1,4 +1,5 @@
-CONFIG_PATH=${HOME}/.generation/
+CONFIG_PATH = $(shell pwd)/.generation/
+# CONFIG_PATH=${HOME}/.generation/
 
 .PHONY: init
 init:
