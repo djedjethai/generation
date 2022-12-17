@@ -1,0 +1,65 @@
+Hi Matthew, thank you for your time.
+
+Via this file I would like to explain to you some details which will(I hope) make you get some points in minutes.
+
+For now I call the project: “Generation”(as in your book you call it Generation0, I know it’s really not creative…), but I can change it if you have a better idea :).
+
+Right now the project can not run live(it was, but not anymore with the ongoing implementation of the replication), however all the tests work(including the end-to-end one in /internal/agent), my point at this time is to show you where I am.
+
+
+
+1/ --- Project presentation ---
+
+I let you read the README first
+
+A - Doubly-Linked-List or dll(the dll contains Nodes which contain the key-value).
+In parallel with the dll there is a map[key]*node which keeps records of all nodes present in the dll. It makes the retrieval(and the access) of any node very fast as we can access it via its pointer(so we never need to iterate the dll).
+
+I wrote a node containing the key-value, I know storing the key will lose memories… I do that bc when deleting a value(so a node) or when a node reaches the maximum records, I also need to remove the entry from the map[key]*node so I need the key… Or maybe you have a better idea ?
+
+B – Gossip and Raft. I finally ended up using the Hashicorp library for Gossip and Raft, I don’t know if that is a good choice(but it works) ? Right now it’s all implemented using gRPC, I take advantage of the grpc’s features. As all of those distributed things are not that easy… implementing HTTP will add some jobs, is it worse ???
+
+The methods Put, Get, Delete hit the leader(as they have to for the replication), Keys and Keysvalues(I added it, retrieve all key-values via a stream) can hit any follower. I did not implement the load balancing yet, but it won’t be long with the gRPC features, again what about HTTP ….
+
+/internal/raftlog are the logs the the raft replication(from Travis Jeffrey).  
+
+C – The .generation folder contains all the certificates, I use cloudflare/cfssl to generate them(again Travis Jeffrey taught that).
+
+D – I will need to refactor the Observability features for it to work with few replicas.
+
+E – The end-to-end tests in /internal/agent/ are pretty explicite, if you like from the project root file you can run all tests with “make test”.
+
+F – I did add one end-point to get all keys values (it streams the datas), but right now it’s not available for HTTP.
+   
+G – In the README forget about the section “Start the Key-Value-Store” it does not work right now.
+
+H - Basically /internal/agent host the most explicit files.
+
+2/ --- up coming --- 
+
+A – from the leader node Raft takes regularly some snapshot of the stored datas, I will use Postgres(as you suggested it) to record them, as well I am thinking to implement a disk storage to give the option to use or not Postgres. 
+
+B – The next step would be to implement the discovery(resolver and picker) of the services. That will be easy as the book of Travis Jeffrey tells everything. Again it will be done for gRPC only…  
+
+
+3/ --- questions ---
+
+A – What should I do with HTTP ?
+
+B – In the storage does the map[string]*node is ok even if it wastes memory ? Or is it better to iterate the dll anyway and avoid this memory loss ?
+
+C – What do you think of using Hashicorp ?
+
+D – Using Raft involves all requests modifying the state to hit the leader node, which means Put, Delete and even Get(as I remove the node and unshift it), it means that almost all requests will hit the leader node…. Is that ok ? Kind of sad when there will be at least 2 nodes sleeping behind… 
+
+
+
+That’s all, which is a lot already. Feel free to tell me anything you like, do not like, feel, I am an easy person and I believe criticism is good for progres.
+
+Finally this small fun project(thank you to remind me to enjoy it in your last sms, I kept it in mind) at this point, is basically your book, and Travis Jeffrey’s one, sadly there is nothing much from me ah ah ah...
+
+Thank you again.
+
+
+ps. The repo is private, it’s just for now, I mean feel free to do whatever you like with that. 
+
