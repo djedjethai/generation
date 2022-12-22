@@ -1,0 +1,4 @@
+data-dir: /home/jerome/Documents/projects/generationProject/generation/data
+rpc-port: 8400
+bind-addr: 127.0.0.1
+bootstrap: true

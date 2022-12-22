@@ -6,10 +6,10 @@ import (
 	"github.com/djedjethai/generation/internal/agent"
 	"github.com/djedjethai/generation/internal/config"
 	"github.com/djedjethai/generation/internal/observability"
-	"github.com/spf13/cobra"
+	// "github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
-	"strconv"
+	// "strconv"
 	"time"
 	// "go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
@@ -30,40 +30,16 @@ var labels = []label.KeyValue{
 	// label.Key("container_id").String(os.Getenv("HOSTNAME")),
 	label.Key("container_id").String("1234"),
 }
-var rootCmd = &cobra.Command{
-	Use:  "flags",
-	Long: "A simple flags experimentation command, built with Cobra.",
-	Run:  flagsFunc,
-}
-var jaegerEndpoint string
 
-// var encryptK string
-var shards int
-var itemsPerShard int
-var fileLoggerActive bool
-var dbLoggerActive bool
-var isTracing bool
-var isMetrics bool
-var logMode string
 var requests metric.Int64Counter
-
 var appName string
 var serviceName string
 
-func setupSrv() (agent.Config, error) {
-
-	var cfg agent.Config
-
-	// configs from flags
-	if err := rootCmd.Execute(); err != nil {
-		log.Println(err)
-		return cfg, err
-		// os.Exit(1)
-	}
+func setupSrv(cfg *agent.Config) error {
 
 	// config from var env
 	port := os.Getenv("PORT")
-	port_grpc := os.Getenv("PORT_GRPC")
+	// port_grpc := os.Getenv("PORT_GRPC")
 	protocol := os.Getenv("PROTOCOL")
 	app_name := os.Getenv("APP_NAME")
 	service_name := os.Getenv("SERVICE_NAME")
@@ -72,28 +48,13 @@ func setupSrv() (agent.Config, error) {
 
 	protocol = "grpc" // uncomment to switch to grpc
 
-	setVarEnv(&protocol, &port, &port_grpc, &app_name, &service_name)
+	setVarEnv(&protocol, &port, &app_name, &service_name)
 
 	appName = app_name
 	serviceName = service_name
 
-	portGRPC, _ := strconv.Atoi(port_grpc)
-
-	cfg = agent.Config{
-		// EncryptKEY:       encryptK,
-		FileLoggerActive: fileLoggerActive,
-		DBLoggerActive:   dbLoggerActive,
-		Shards:           shards,
-		ItemsPerShard:    itemsPerShard,
-		IsTracing:        isTracing,
-		IsMetrics:        isMetrics,
-		JaegerEndpoint:   jaegerEndpoint,
-		Port:             port,
-		PortGRPC:         portGRPC,
-		Protocol:         protocol,
-	}
-
-	fmt.Println("see config: ", cfg)
+	cfg.Port = port
+	cfg.Protocol = protocol
 
 	obs := observability.Observability{
 		Requests:    &requests,
@@ -113,7 +74,7 @@ func setupSrv() (agent.Config, error) {
 	// tracing is on
 	if obs.IsTracing {
 		// jaeger config, http://localhost:16686/search
-		tr, err := configJaeger()
+		tr, err := configJaeger(cfg.JaegerEndpoint)
 		if err != nil {
 			log.Fatal("Error when configuring Jaeger: ", err)
 		}
@@ -138,18 +99,15 @@ func setupSrv() (agent.Config, error) {
 		cfg.PostgresParams = postgresConfig
 	}
 
-	return cfg, nil
+	return nil
 }
 
-func setVarEnv(protocol, port, port_grpc, app_name, service_name *string) {
+func setVarEnv(protocol, port, app_name, service_name *string) {
 	if len(*protocol) == 0 {
 		*protocol = "http"
 	}
 	if len(*port) == 0 && *protocol == "http" {
 		*port = "8080"
-	}
-	if len(*port_grpc) == 0 && *protocol == "grpc" {
-		*port_grpc = "50051"
 	}
 	if len(*app_name) == 0 {
 		*app_name = "golru"
@@ -157,28 +115,6 @@ func setVarEnv(protocol, port, port_grpc, app_name, service_name *string) {
 	if len(*service_name) == 0 {
 		*service_name = "generation"
 	}
-}
-
-func init() {
-	rootCmd.Flags().StringVarP(&jaegerEndpoint, "jaeger", "j", "http://jaeger:14268/api/traces", "the Jaeger end point to connect")
-	// rootCmd.Flags().StringVarP(&encryptK, "encryptK", "e", "HFrdn79ljrjLDZHlV1t+BdxHRFf5", "an encoding key to encrypt data to file logs")
-	rootCmd.Flags().IntVarP(&shards, "shards", "s", 2, "number of shards")
-	rootCmd.Flags().IntVarP(&itemsPerShard, "itemPerShard", "i", 10, "number of shards")
-	rootCmd.Flags().BoolVarP(&dbLoggerActive, "dbLogger", "d", false, "enable the database logging")
-	rootCmd.Flags().BoolVarP(&isTracing, "isTracing", "t", false, "enable Jaeger tracing")
-	rootCmd.Flags().BoolVarP(&isMetrics, "isMetrics", "m", false, "enable Prometheus metrics")
-	rootCmd.Flags().StringVarP(&logMode, "loggerMode", "l", "prod", "logger mode can be prod, development, debug")
-}
-
-func flagsFunc(cmd *cobra.Command, args []string) {
-	fmt.Println("Jaeger endpoint:", jaegerEndpoint)
-	// fmt.Println("Encryption key:", encryptK)
-	fmt.Println("Shards:", shards)
-	fmt.Println("Items per shard:", itemsPerShard)
-	fmt.Println("Is db logger enabled:", dbLoggerActive)
-	fmt.Println("Is Jaeger enabled:", isTracing)
-	fmt.Println("Is Prometheus enabled:", isMetrics)
-	fmt.Println("Log level:", logMode)
 }
 
 func initLogger(logMode string) {
@@ -231,7 +167,7 @@ func configPrometheus() {
 	buildRuntimeObservers()
 }
 
-func configJaeger() (observability.Tracer, error) {
+func configJaeger(jaegerEndpoint string) (observability.Tracer, error) {
 	// stdExporter, err := stdout.NewExporter(
 	// 	stdout.WithPrettyPrint(),
 	// )
