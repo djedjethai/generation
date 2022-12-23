@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	// "os/signal"
+	"os/signal"
 	"path"
-	// "syscall"
+	"syscall"
 
 	"github.com/djedjethai/generation/internal/agent"
 	"github.com/djedjethai/generation/internal/config"
@@ -179,13 +179,13 @@ func (c *cli) run(cmd *cobra.Command, args []string) error {
 	fmt.Println("seee al configsssss: ", c.cfg.Bootstrap)
 
 	// TODO uncomment here to run the service
-	// agent, err := agent.New(c.cfg.Config)
-	// if err != nil {
-	// 	return err
-	// }
-	// sigc := make(chan os.Signal, 1)
-	// signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
-	// <-sigc
-	// return agent.Shutdown()
-	return nil
+	agent, err := agent.New(c.cfg.Config)
+	if err != nil {
+		return err
+	}
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+	<-sigc
+	return agent.Shutdown()
+	// return nil
 }
