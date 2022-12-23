@@ -1,0 +1,15 @@
+data-dir: /data2
+rpc-port: 8402
+bind-addr: 0.0.0.0:8502
+start-join-addrs: 0.0.0.0:8500
+bootstrap: false
+server-tls-cert-file: /config/.generation/server.pem
+server-tls-key-file: /config/.generation/server-key.pem
+server-tls-ca-file: /config/.generation/ca.pem
+peer-tls-cert-file: /config/.generation/client.pem
+peer-tls-key-file: /config/.generation/client-key.pem
+peer-tls-ca-file: /config/.generation/ca.pem
+
+
+
+

@@ -1,9 +1,10 @@
 version: '2'
 
 services:
-  golru:
-    build:
-      context: .
+  generation:
+    image: djedjethai/generation:0.0.1
+    # build:
+    #  context: .
     restart: always
     ports:
       - "8080:8080"
@@ -11,8 +12,8 @@ services:
     environment:
       PORT: "8080"
       PROTOCOL: grpc
-      APP_NAME: golru
-      SERVICE_NAME: service1
+      APP_NAME: generation
+      SERVICE_NAME: service0
         # CONFIG_DIR: /config/.generation
     deploy:
       mode: replicated
@@ -20,6 +21,53 @@ services:
     volumes:
       - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
       - /home/jerome/Documents/projects/generationProject/generation/config:/config
+      - /home/jerome/Documents/projects/generationProject/generation/data:/data
+    networks:
+      - mynet
+
+  generation1:
+    image: djedjethai/generation:0.0.1
+    restart: always
+    ports:
+      - "8081:8081"
+      - "8401:8401"
+    depends_on:
+      - generation
+    environment:
+      PORT: "8081"
+      PROTOCOL: grpc
+      APP_NAME: generation1
+      SERVICE_NAME: service1
+    deploy:
+      mode: replicated
+      replicas: 1
+    volumes:
+      - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
+      - /home/jerome/Documents/projects/generationProject/generation/config1:/config
+      - /home/jerome/Documents/projects/generationProject/generation/data:/data1
+    networks:
+      - mynet
+
+  generation2:
+    image: djedjethai/generation:0.0.1
+    restart: always
+    ports:
+      - "8082:8082"
+      - "8402:8402"
+    depends_on:
+      - generation1
+    environment:
+      PORT: "8082"
+      PROTOCOL: grpc
+      APP_NAME: generation2
+      SERVICE_NAME: service2
+    deploy:
+      mode: replicated
+      replicas: 1
+    volumes:
+      - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
+      - /home/jerome/Documents/projects/generationProject/generation/config2:/config
+      - /home/jerome/Documents/projects/generationProject/generation/data:/data2
     networks:
       - mynet
 
