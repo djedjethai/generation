@@ -13,6 +13,8 @@ COPY . .
 RUN go mod download
 RUN go get github.com/jackc/pgconn@v1.13.0
 RUN go get github.com/jackc/pgconn@v1.13.0
+RUN go get github.com/hashicorp/serf/serf@v0.9.8
+RUN go get go.opentelemetry.io/otel/exporters/metric/prometheus@v0.15.0
 
 WORKDIR /app/bin
 

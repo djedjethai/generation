@@ -7,19 +7,19 @@ services:
     restart: always
     ports:
       - "8080:8080"
-      - "50051:50051"
+      - "8400:8400"
     environment:
       PORT: "8080"
-      PORT_GRPC: "50051"
       PROTOCOL: grpc
       APP_NAME: golru
       SERVICE_NAME: service1
-      CONFIG_DIR: /config/.generation
+        # CONFIG_DIR: /config/.generation
     deploy:
       mode: replicated
       replicas: 1
     volumes:
-      - /home/jerome/.generation:/config/.generation
+      - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
+      - /home/jerome/Documents/projects/generationProject/generation/config:/config
     networks:
       - mynet
 

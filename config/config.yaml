@@ -1,0 +1,16 @@
+data-dir: /data
+rpc-port: 8400
+bind-addr: 127.0.0.1:8405
+bootstrap: true
+server-tls-cert-file: /config/.generation/server.pem
+server-tls-key-file: /config/.generation/server-key.pem
+server-tls-ca-file: /config/.generation/ca.pem
+peer-tls-cert-file: /config/.generation/client.pem
+peer-tls-key-file: /config/.generation/client-key.pem
+peer-tls-ca-file: /config/.generation/ca.pem
+  #server-tls-cert-file: /home/jerome/Documents/projects/generationProject/generation/.generation/server.pem
+  #server-tls-key-file: /home/jerome/Documents/projects/generationProject/generation/.generation/server-key.pem
+  #server-tls-ca-file: /home/jerome/Documents/projects/generationProject/generation/.generation/ca.pem
+  #peer-tls-cert-file: /home/jerome/Documents/projects/generationProject/generation/.generation/client.pem
+  #peer-tls-key-file: /home/jerome/Documents/projects/generationProject/generation/.generation/client-key.pem
+  #peer-tls-ca-file: /home/jerome/Documents/projects/generationProject/generation/.generation/ca.pem

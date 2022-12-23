@@ -59,11 +59,12 @@ func setupFlags(cmd *cobra.Command) error {
 	}
 
 	// service configurations
-	cmd.Flags().String("config-file", "/home/jerome/Documents/projects/generationProject/generation/config.yaml", "Path to config file.")
-	dataDir := path.Join(os.TempDir(), "proglog")
+	// TODO set the "config-file" to be not static
+	cmd.Flags().String("config-file", "/config/config.yaml", "Path to config file.")
+	dataDir := path.Join(os.TempDir(), "generation")
 	cmd.Flags().String("data-dir", dataDir, "Directory to store log and Raft data.")
 	cmd.Flags().String("node-name", hostname, "Unique server ID.")
-	cmd.Flags().String("bind-addr", "127.0.0.1:8401", "Address to bind Serf on.")
+	cmd.Flags().String("bind-addr", "127.0.0.1:85000", "Address to bind Serf on.")
 	cmd.Flags().Int("rpc-port", 8400, "Port for RPC clients (and Raft) connections.")
 	cmd.Flags().StringSlice("start-join-addrs", nil, "Serf addresses to join.")
 	cmd.Flags().Bool("bootstrap", false, "Bootstrap the cluster.")
