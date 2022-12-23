@@ -52,6 +52,15 @@ C – What do you think of using Hashicorp ?
 
 D – Using Raft involves all requests modifying the state to hit the leader node, which means Put, Delete and even Get(as I remove the node and unshift it), it means that almost all requests will hit the leader node…. Is that ok ? Kind of sad when there will be at least 2 nodes sleeping behind… 
 
+E - is there a system like raft but with not leader/followers ? means that all nodes can receive and propagate ?
+
+F - is the specialization u where talking about is the one from Cloud Computing Specialization, https://www.coursera.org/specializations/cloud-computing ? did u follow it, c++ ??
+(Developing Applications with Google Cloud Specialization)
+
+G - any good book/course to study cloud native staff ? good resource to study kafka with go ?
+
+
+
 
 
 That’s all, which is a lot already. Feel free to tell me anything you like, do not like, feel, I am an easy person and I believe criticism is good for progres.
