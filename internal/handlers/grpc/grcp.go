@@ -12,6 +12,8 @@ import (
 	"github.com/djedjethai/generation/internal/models"
 	"google.golang.org/grpc"
 	// "google.golang.org/grpc/status"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type Server struct {
@@ -24,6 +26,11 @@ func NewGRPCServer(services config.Services, loggerFacade *logger.LoggerFacade, 
 
 	gsrv := grpc.NewServer(opts...)
 	// gsrv := grpc.NewServer() // uncomment here for no tls
+
+	// set healthcheck end point
+	hsrv := health.NewServer()
+	hsrv.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(gsrv, hsrv)
 
 	srv, err := newgrpcserver(&services, loggerFacade)
 	if err != nil {

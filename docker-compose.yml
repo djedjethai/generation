@@ -7,8 +7,15 @@ services:
     #  context: .
     restart: always
     ports:
+      # - "1-65535:1-65535"
       - "8080:8080"
       - "8400:8400"
+      - "8500"
+    healthcheck:
+      test:  ["CMD", "/bin/grpc_health_probe", "-addr=0.0.0.0:8500"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
     environment:
       PORT: "8080"
       PROTOCOL: grpc
@@ -31,6 +38,7 @@ services:
     ports:
       - "8081:8081"
       - "8401:8401"
+      - "8501"
     depends_on:
       - generation
     environment:
@@ -44,7 +52,7 @@ services:
     volumes:
       - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
       - /home/jerome/Documents/projects/generationProject/generation/config1:/config
-      - /home/jerome/Documents/projects/generationProject/generation/data:/data1
+      - /home/jerome/Documents/projects/generationProject/generation/data1:/data1
     networks:
       - mynet
 
@@ -54,6 +62,7 @@ services:
     ports:
       - "8082:8082"
       - "8402:8402"
+      - "8502"
     depends_on:
       - generation1
     environment:
@@ -67,7 +76,7 @@ services:
     volumes:
       - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
       - /home/jerome/Documents/projects/generationProject/generation/config2:/config
-      - /home/jerome/Documents/projects/generationProject/generation/data:/data2
+      - /home/jerome/Documents/projects/generationProject/generation/data2:/data2
     networks:
       - mynet
 

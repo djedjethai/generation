@@ -124,6 +124,7 @@ func (a *Agent) setupMux() error {
 		":%d",
 		a.config.PortGRPC,
 	)
+	fmt.Println("11111111111111111111111111111111111111 in setupMux, see rpcAddr: ", rpcAddr)
 	ln, err := net.Listen("tcp", rpcAddr)
 	if err != nil {
 		return err
@@ -257,6 +258,9 @@ func (a *Agent) setupMembership() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("22222222222222222222222222222222222 see rpcAddr in setupMembership: ", rpcAddr)
+	fmt.Println("22222222222222222222222222222222222 see startJoinAddrs in setupMembership: ", a.config.StartJoinAddrs)
+	fmt.Println("22222222222222222222222222222222222 see bindAddr in setupMembership: ", a.config.BindAddr)
 	a.membership, err = discovery.New(a.Storage, discovery.Config{
 		NodeName: a.config.NodeName,
 		BindAddr: a.config.BindAddr,
