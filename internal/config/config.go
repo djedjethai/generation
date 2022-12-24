@@ -18,6 +18,10 @@ type Services struct {
 	Deleter deleter.Deleter
 }
 
+// type GetServerer interface {
+// 	GetServers() ([]*pb.Server, error)
+// }
+
 type PostgresDBParams struct {
 	DbName   string
 	Host     string

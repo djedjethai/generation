@@ -130,7 +130,8 @@ func (l *DistributedStorage) setupRaft(dataDir string) error {
 		configA := raft.Configuration{
 			Servers: []raft.Server{{
 				ID:      config.LocalID,
-				Address: transport.LocalAddr(),
+				Address: raft.ServerAddress(l.config.Raft.BindAddr),
+				// Address: transport.LocalAddr(),
 			}},
 		}
 		err = l.raft.BootstrapCluster(configA).Error()
@@ -199,6 +200,23 @@ func (l *DistributedStorage) Read(ctx context.Context, key string) (string, erro
 		return "", err
 	}
 	return val.(string), nil
+}
+
+// health end-point, return the servers' addresses
+func (l *DistributedStorage) GetServers() ([]*api.Server, error) {
+	future := l.raft.GetConfiguration()
+	if err := future.Error(); err != nil {
+		return nil, err
+	}
+	var servers []*api.Server
+	for _, server := range future.Configuration().Servers {
+		servers = append(servers, &api.Server{
+			Id:       string(server.ID),
+			RpcAddr:  string(server.Address),
+			IsLeader: l.raft.Leader() == server.Address,
+		})
+	}
+	return servers, nil
 }
 
 // apply will switch on the RequestType(Put/Get/Delete)
