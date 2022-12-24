@@ -120,11 +120,15 @@ func New(cfg Config) (*Agent, error) {
 }
 
 func (a *Agent) setupMux() error {
+	addr, err := net.ResolveTCPAddr("tcp", a.config.BindAddr)
+	if err != nil {
+		return err
+	}
 	rpcAddr := fmt.Sprintf(
-		":%d",
+		"%s:%d",
+		addr.IP.String(),
 		a.config.PortGRPC,
 	)
-	fmt.Println("11111111111111111111111111111111111111 in setupMux, see rpcAddr: ", rpcAddr)
 	ln, err := net.Listen("tcp", rpcAddr)
 	if err != nil {
 		return err
@@ -154,10 +158,15 @@ func (a *Agent) setupStorage(shards, itemsPerShard int) error {
 			a.config.ServerTLSConfig,
 			a.config.PeerTLSConfig,
 		)
+		var err error
+		rpcAddr, err := a.config.RPCAddr()
+		if err != nil {
+			return err
+		}
+		logConfig.Raft.BindAddr = rpcAddr
 		logConfig.Raft.LocalID = raft.ServerID(a.config.NodeName)
 		logConfig.Raft.Bootstrap = a.config.Bootstrap
 
-		var err error
 		a.Storage, err = storage.NewDistributedStorage(
 			a.config.DataDir,
 			logConfig,
