@@ -59,22 +59,23 @@ func setupFlags(cmd *cobra.Command) error {
 	}
 
 	// service configurations
-	cmd.Flags().String("config-file", "/home/jerome/Documents/projects/generationProject/generation/config.yaml", "Path to config file.")
-	dataDir := path.Join(os.TempDir(), "proglog")
+	// TODO set the "config-file" to be not static
+	cmd.Flags().String("config-file", "/home/jerome/Documents/projects/generationProject/generation/devConfig/config.yaml", "Path to config file.")
+	dataDir := path.Join(os.TempDir(), "generation")
 	cmd.Flags().String("data-dir", dataDir, "Directory to store log and Raft data.")
 	cmd.Flags().String("node-name", hostname, "Unique server ID.")
-	cmd.Flags().String("bind-addr", "127.0.0.1:8401", "Address to bind Serf on.")
+	cmd.Flags().String("bind-addr", "127.0.0.1:8500", "Address to bind Serf on.")
 	cmd.Flags().Int("rpc-port", 8400, "Port for RPC clients (and Raft) connections.")
 	cmd.Flags().StringSlice("start-join-addrs", nil, "Serf addresses to join.")
 	cmd.Flags().Bool("bootstrap", false, "Bootstrap the cluster.")
-	cmd.Flags().String("acl-model-file", "", "Path to ACL model.")
-	cmd.Flags().String("acl-policy-file", "", "Path to ACL policy.")
-	cmd.Flags().String("server-tls-cert-file", "", "Path to server tls cert.")
-	cmd.Flags().String("server-tls-key-file", "", "Path to server tls key.")
-	cmd.Flags().String("server-tls-ca-file", "", "Path to server certificate authority.")
-	cmd.Flags().String("peer-tls-cert-file", "", "Path to peer tls cert.")
-	cmd.Flags().String("peer-tls-key-file", "", "Path to peer tls key.")
-	cmd.Flags().String("peer-tls-ca-file", "", "Path to peer certificate authority.")
+	// cmd.Flags().String("acl-model-file", "", "Path to ACL model.")
+	// cmd.Flags().String("acl-policy-file", "", "Path to ACL policy.")
+	cmd.Flags().String("server-tls-cert-file", "/.generation/server.pem", "Path to server tls cert.")
+	cmd.Flags().String("server-tls-key-file", "/.generation/server-key.pem", "Path to server tls key.")
+	cmd.Flags().String("server-tls-ca-file", "/.generation/ca.pem", "Path to server certificate authority.")
+	cmd.Flags().String("peer-tls-cert-file", "/.generation/client.pem", "Path to peer tls cert.")
+	cmd.Flags().String("peer-tls-key-file", "/.generation/client-key.pem", "Path to peer tls key.")
+	cmd.Flags().String("peer-tls-ca-file", "/.generation/ca.pem", "Path to peer certificate authority.")
 
 	// service options
 	// TODO set the environment flag

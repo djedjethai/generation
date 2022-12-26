@@ -73,6 +73,7 @@ func (l *Log) setup() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -180,7 +181,9 @@ func (l *Log) newSegment(off uint64) error {
 	if err != nil {
 		return err
 	}
+
 	l.segments = append(l.segments, s)
+
 	l.activeSegment = s
 	return nil
 }

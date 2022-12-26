@@ -1,5 +1,9 @@
 CONFIG_PATH = $(shell pwd)/.generation/
 # CONFIG_PATH=${HOME}/.generation/
+TAG ?= 0.0.2
+
+build-docker:
+	docker build -t djedjethai/generation:$(TAG) .
 
 .PHONY: init
 init:

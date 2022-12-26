@@ -1,25 +1,82 @@
 version: '2'
 
 services:
-  golru:
-    build:
-      context: .
+  generation:
+    image: djedjethai/generation:0.0.1
+    # build:
+    #  context: .
     restart: always
     ports:
+      # - "1-65535:1-65535"
       - "8080:8080"
-      - "50051:50051"
+      - "8400:8400"
+      - "8500"
+    healthcheck:
+      test:  ["CMD", "/bin/grpc_health_probe", "-addr=0.0.0.0:8500"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
     environment:
       PORT: "8080"
-      PORT_GRPC: "50051"
       PROTOCOL: grpc
-      APP_NAME: golru
-      SERVICE_NAME: service1
-      CONFIG_DIR: /config/.generation
+      APP_NAME: generation
+      SERVICE_NAME: service0
+        # CONFIG_DIR: /config/.generation
     deploy:
       mode: replicated
       replicas: 1
     volumes:
-      - /home/jerome/.generation:/config/.generation
+      - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
+      - /home/jerome/Documents/projects/generationProject/generation/config:/config
+      - /home/jerome/Documents/projects/generationProject/generation/data:/data
+    networks:
+      - mynet
+
+  generation1:
+    image: djedjethai/generation:0.0.1
+    restart: always
+    ports:
+      - "8081:8081"
+      - "8401:8401"
+      - "8501"
+    depends_on:
+      - generation
+    environment:
+      PORT: "8081"
+      PROTOCOL: grpc
+      APP_NAME: generation1
+      SERVICE_NAME: service1
+    deploy:
+      mode: replicated
+      replicas: 1
+    volumes:
+      - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
+      - /home/jerome/Documents/projects/generationProject/generation/config1:/config
+      - /home/jerome/Documents/projects/generationProject/generation/data1:/data1
+    networks:
+      - mynet
+
+  generation2:
+    image: djedjethai/generation:0.0.1
+    restart: always
+    ports:
+      - "8082:8082"
+      - "8402:8402"
+      - "8502"
+    depends_on:
+      - generation1
+    environment:
+      PORT: "8082"
+      PROTOCOL: grpc
+      APP_NAME: generation2
+      SERVICE_NAME: service2
+    deploy:
+      mode: replicated
+      replicas: 1
+    volumes:
+      - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
+      - /home/jerome/Documents/projects/generationProject/generation/config2:/config
+      - /home/jerome/Documents/projects/generationProject/generation/data2:/data2
     networks:
       - mynet
 

@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	keyvalue "github.com/djedjethai/generation/api/v1/keyvalue"
 	models "github.com/djedjethai/generation/internal/models"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -76,4 +77,19 @@ func (m *MockGetter) GetKeysValues(arg0 context.Context, arg1 chan models.KeysVa
 func (mr *MockGetterMockRecorder) GetKeysValues(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKeysValues", reflect.TypeOf((*MockGetter)(nil).GetKeysValues), arg0, arg1)
+}
+
+// GetServers mocks base method.
+func (m *MockGetter) GetServers(arg0 context.Context) ([]*keyvalue.Server, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetServers", arg0)
+	ret0, _ := ret[0].([]*keyvalue.Server)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetServers indicates an expected call of GetServers.
+func (mr *MockGetterMockRecorder) GetServers(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServers", reflect.TypeOf((*MockGetter)(nil).GetServers), arg0)
 }
