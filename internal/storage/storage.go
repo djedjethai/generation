@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	api "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/internal/models"
 	"github.com/djedjethai/generation/internal/observability"
 	"sync"
@@ -16,6 +17,7 @@ type StorageRepo interface {
 	Keys(context.Context) []string
 	Delete(context.Context, string, *Shard) error
 	KeysValues(context.Context, chan models.KeysValues) error
+	Servers(context.Context) ([]*api.Server, error)
 }
 
 type Shard struct {
@@ -222,4 +224,9 @@ func (m ShardedMap) KeysValues(ctx context.Context, kv chan models.KeysValues) e
 	wg.Wait()
 	close(kv)
 	return nil
+}
+
+// aim to fulfill the interface contract. Will be return from distributed.go
+func (m ShardedMap) Servers(ctx context.Context) ([]*api.Server, error) {
+	return []*api.Server{}, nil
 }

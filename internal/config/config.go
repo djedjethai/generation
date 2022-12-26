@@ -1,15 +1,12 @@
 package config
 
 import (
-	// "crypto/tls"
-	// "fmt"
-	// "net"
-
 	"github.com/djedjethai/generation/internal/deleter"
 	"github.com/djedjethai/generation/internal/getter"
 	// "github.com/djedjethai/generation/internal/observability"
 	"github.com/djedjethai/generation/internal/setter"
 	// "github.com/djedjethai/generation/internal/storage"
+	// pb "github.com/djedjethai/generation/api/v1/keyvalue"
 )
 
 type Services struct {
@@ -17,10 +14,6 @@ type Services struct {
 	Getter  getter.Getter
 	Deleter deleter.Deleter
 }
-
-// type GetServerer interface {
-// 	GetServers() ([]*pb.Server, error)
-// }
 
 type PostgresDBParams struct {
 	DbName   string

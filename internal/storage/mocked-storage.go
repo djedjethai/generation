@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	api "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/internal/models"
 )
 
@@ -52,4 +53,8 @@ func (ms mShardedMap) KeysValues(ctx context.Context, kv chan models.KeysValues)
 	close(kv)
 
 	return nil
+}
+
+func (ms mShardedMap) Servers(ctx context.Context) ([]*api.Server, error) {
+	return []*api.Server{}, nil
 }

@@ -16,10 +16,6 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
-// type GetServerer interface {
-// 	GetServers() ([]*pb.Server, error)
-// }
-
 type Server struct {
 	pb.UnimplementedKeyValueServer
 	Services     *config.Services
@@ -53,13 +49,13 @@ func newgrpcserver(services *config.Services, loggerFacade *logger.LoggerFacade)
 	}, nil
 }
 
-// func (s *Server) GetServers(ctx context.Context, req *pb.GetServersRequest) (*pb.GetServersResponse, error) {
-// 	servers, err := s.GetServerer.GetServers()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &pb.GetServersResponse{Servers: servers}, nil
-// }
+func (s *Server) GetServers(ctx context.Context, req *pb.GetServersRequest) (*pb.GetServersResponse, error) {
+	servers, err := s.Services.Getter.GetServers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetServersResponse{Servers: servers}, nil
+}
 
 func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
 

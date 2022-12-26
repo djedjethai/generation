@@ -3,7 +3,7 @@ package getter
 import (
 	"context"
 	"fmt"
-	// api "github.com/djedjethai/generation/api/v1/keyvalue"
+	api "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/internal/models"
 	"github.com/djedjethai/generation/internal/observability"
 	"github.com/djedjethai/generation/internal/storage"
@@ -17,7 +17,7 @@ type Getter interface {
 	// Get(context.Context, string) interface{}
 	GetKeys(context.Context) []string
 	GetKeysValues(context.Context, chan models.KeysValues) error
-	// GetServers(context.Context)
+	GetServers(context.Context) ([]*api.Server, error)
 }
 
 type getter struct {
@@ -74,6 +74,6 @@ func (s *getter) GetKeysValues(ctx context.Context, kv chan models.KeysValues) e
 	return s.st.KeysValues(ctx, kv)
 }
 
-// func (s *getter) GetServers() ([]*api.Server, error) {
-// 	return s.st.GetServers()
-// }
+func (s *getter) GetServers(ctx context.Context) ([]*api.Server, error) {
+	return s.st.Servers(ctx)
+}

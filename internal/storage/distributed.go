@@ -203,7 +203,7 @@ func (l *DistributedStorage) Read(ctx context.Context, key string) (string, erro
 }
 
 // health end-point, return the servers' addresses
-func (l *DistributedStorage) GetServers() ([]*api.Server, error) {
+func (l *DistributedStorage) Servers(ctx context.Context) ([]*api.Server, error) {
 	future := l.raft.GetConfiguration()
 	if err := future.Error(); err != nil {
 		return nil, err
