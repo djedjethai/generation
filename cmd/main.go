@@ -60,7 +60,7 @@ func setupFlags(cmd *cobra.Command) error {
 
 	// service configurations
 	// TODO set the "config-file" to be not static
-	cmd.Flags().String("config-file", "/home/jerome/Documents/projects/generationProject/generation/development/config.yaml", "Path to config file.")
+	cmd.Flags().String("config-file", "/home/jerome/Documents/projects/generationProject/generation/devConfig/config.yaml", "Path to config file.")
 	dataDir := path.Join(os.TempDir(), "generation")
 	cmd.Flags().String("data-dir", dataDir, "Directory to store log and Raft data.")
 	cmd.Flags().String("node-name", hostname, "Unique server ID.")
