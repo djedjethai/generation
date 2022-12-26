@@ -1,9 +1,11 @@
 package raftlog
 
 import (
-	"github.com/tysonmote/gommap"
+	// "fmt"
 	"io"
 	"os"
+
+	"github.com/tysonmote/gommap"
 )
 
 var (

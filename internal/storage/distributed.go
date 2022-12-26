@@ -69,6 +69,10 @@ func (l *DistributedStorage) setupRaft(dataDir string) error {
 		return err
 	}
 
+	// give an access to the raftStore from DistributedStorage
+	// allow to close the raftStorage properly when shutdown
+	l.log = logStore.Log
+
 	stableStore, err := raftboltdb.NewBoltStore(
 		filepath.Join(dataDir, "raft", "stable"),
 	)
@@ -136,8 +140,8 @@ func (l *DistributedStorage) setupRaft(dataDir string) error {
 		}
 		err = l.raft.BootstrapCluster(configA).Error()
 	}
+
 	return err
-	// return nil
 }
 
 // should have Put/Get/Delete
@@ -424,7 +428,10 @@ func newLogStore(dir string, c raftlog.Config) (*logStore, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &logStore{log}, nil
+
+	lAddr := &logStore{log}
+
+	return lAddr, nil
 }
 
 func (l *logStore) FirstIndex() (uint64, error) {
@@ -452,7 +459,6 @@ func (l *logStore) StoreLog(record *raft.Log) error {
 	return l.StoreLogs([]*raft.Log{record})
 }
 func (l *logStore) StoreLogs(records []*raft.Log) error {
-
 	for _, record := range records {
 		if _, err := l.Append(&raftlog.Record{
 			Value: record.Data,
@@ -562,6 +568,7 @@ func (l *DistributedStorage) Join(id, addr string) error {
 
 func (l *DistributedStorage) Leave(id string) error {
 	removeFuture := l.raft.RemoveServer(raft.ServerID(id), 0, 0)
+
 	return removeFuture.Error()
 }
 
@@ -582,10 +589,12 @@ func (l *DistributedStorage) WaitForLeader(timeout time.Duration) error {
 }
 
 func (l *DistributedStorage) Close() error {
+
 	f := l.raft.Shutdown()
 	if err := f.Error(); err != nil {
 		return err
 	}
-	return nil
-	// return l.log.Close()
+
+	// return nil
+	return l.log.Close()
 }
