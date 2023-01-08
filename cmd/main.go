@@ -97,6 +97,7 @@ func (c *cli) setupConfig(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	log.Println("see the config file path: ", configFile)
 	viper.SetConfigFile(configFile)
 	if err = viper.ReadInConfig(); err != nil {
 		// it's ok if config file doesn't exist
