@@ -22,25 +22,25 @@ func configFile(filename string) string {
 		return filepath.Join(dir, filename)
 	}
 
-	dir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
 	// for development purpose
-	if filepath.Base(dir) == "cmd" {
-		return filepath.Join(dir, "../", ".generation", filename)
-	} else if filepath.Base(dir) == "grpc" {
-		return filepath.Join(dir, "../../..", ".generation", filename)
-	} else {
-		return filepath.Join(dir, "../..", ".generation", filename)
-	}
-
-	// move to that for prod
-	// homeDir, err := os.UserHomeDir()
+	// dir, err := os.Getwd()
 	// if err != nil {
 	// 	panic(err)
 	// }
-	// return filepath.Join(homeDir, ".generation", filename)
+
+	// if filepath.Base(dir) == "cmd" {
+	// 	return filepath.Join(dir, "../", ".generation", filename)
+	// } else if filepath.Base(dir) == "grpc" {
+	// 	return filepath.Join(dir, "../../..", ".generation", filename)
+	// } else {
+	// 	return filepath.Join(dir, "../..", ".generation", filename)
+	// }
+
+	// move to that for prod
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	return filepath.Join(homeDir, ".generation", filename)
 
 }

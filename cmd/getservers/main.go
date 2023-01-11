@@ -16,6 +16,7 @@ import (
 func main() {
 	addr := flag.String("addr", ":8400", "service address")
 
+	// For development
 	clientTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
 		CertFile: config.ClientCertFile,
 		KeyFile:  config.ClientKeyFile,
@@ -32,6 +33,8 @@ func main() {
 
 	flag.Parse()
 	conn, err := grpc.Dial(*addr, opts...)
+
+	// conn, err := grpc.Dial(*addr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}

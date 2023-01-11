@@ -44,16 +44,16 @@ spec:
           name: rpc
         - containerPort: {{ .Values.serfPort }}
           name: serf
-        args:
-        - --config-file=/var/run/generation/config.yaml
-        readinessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:{{ .Values.rpcPort }}"]
-          initialDelaySeconds: 30
-        livenessProbe:
-          exec:
-            command: ["/bin/grpc_health_probe", "-addr=:{{ .Values.rpcPort }}"]
-          initialDelaySeconds: 30
+            # args:
+            # - --config-file=/var/run/generation/config.yaml
+            # readinessProbe:
+            #   exec:
+            #     command: ["/bin/grpc_health_probe", "-addr=:{{ .Values.rpcPort }}"]
+            #   initialDelaySeconds: 30
+            # livenessProbe:
+            #   exec:
+            #     command: ["/bin/grpc_health_probe", "-addr=:{{ .Values.rpcPort }}"]
+            #   initialDelaySeconds: 30
         volumeMounts:
         - name: datadir
           mountPath: /var/run/generation
