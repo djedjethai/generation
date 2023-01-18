@@ -3,8 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
-
-	// "fmt"
+	"log"
 
 	pb "github.com/djedjethai/generation/api/v1/keyvalue"
 	"github.com/djedjethai/generation/internal/config"
@@ -58,6 +57,8 @@ func (s *Server) GetServers(ctx context.Context, req *pb.GetServersRequest) (*pb
 }
 
 func (s *Server) Put(ctx context.Context, r *pb.PutRequest) (*pb.PutResponse, error) {
+
+	log.Println("In grpc handler Put, got hit")
 
 	err := s.Services.Setter.Set(ctx, r.Records.Key, []byte(r.Records.Value))
 	if err == nil {

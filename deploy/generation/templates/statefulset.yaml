@@ -44,8 +44,8 @@ spec:
           name: rpc
         - containerPort: {{ .Values.serfPort }}
           name: serf
-            # args:
-            # - --config-file=/var/run/generation/config.yaml
+        args:
+        - --config-file=/var/run/generation/config.yaml
             # readinessProbe:
             #   exec:
             #     command: ["/bin/grpc_health_probe", "-addr=:{{ .Values.rpcPort }}"]

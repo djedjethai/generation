@@ -59,10 +59,9 @@ func setupFlags(cmd *cobra.Command) error {
 	}
 
 	// service configurations
-	// TODO set the "config-file" to be not static
-	// cmd.Flags().String("config-file", "/home/jerome/Documents/projects/generationProject/generation/devConfig/config.yaml", "Path to config file.")
+	cmd.Flags().String("config-file", "/home/jerome/Documents/projects/generationProject/generation/devConfig/config.yaml", "Path to config file.")
 	// cmd.Flags().String("config-file", "/var/run/generation/config.yaml", "Path to config file.")
-	cmd.Flags().String("config-file", "", "Path to config file.")
+	// cmd.Flags().String("config-file", "", "Path to config file.")
 	dataDir := path.Join(os.TempDir(), "generation")
 	cmd.Flags().String("data-dir", dataDir, "Directory to store log and Raft data.")
 	cmd.Flags().String("node-name", hostname, "Unique server ID.")
@@ -135,37 +134,57 @@ func (c *cli) setupConfig(cmd *cobra.Command, args []string) error {
 	// c.cfg.ACLModelFile = viper.GetString("acl-mode-file")
 	// c.cfg.ACLPolicyFile = viper.GetString("acl-policy-file")
 	c.cfg.ServerTLSConfig.CertFile = viper.GetString("server-tls-cert-file")
+	c.cfg.ServerTLSConfig.CertFile = serverCertFile
 	log.Println("config file see ServerTLSConfig CertFile: ", c.cfg.ServerTLSConfig.CertFile)
+
 	c.cfg.ServerTLSConfig.KeyFile = viper.GetString("server-tls-key-file")
+	c.cfg.ServerTLSConfig.KeyFile = serverKeyFile
 	log.Println("config file see ServerTLSConfig KeyFile: ", c.cfg.ServerTLSConfig.KeyFile)
+
 	c.cfg.ServerTLSConfig.CAFile = viper.GetString("server-tls-ca-file")
+	c.cfg.ServerTLSConfig.CAFile = caFile
 	log.Println("config file see ServerTLSConfig CaFile: ", c.cfg.ServerTLSConfig.CAFile)
+
 	c.cfg.PeerTLSConfig.CertFile = viper.GetString("peer-tls-cert-file")
+	c.cfg.PeerTLSConfig.CertFile = peerCertFile
 	log.Println("config file see PerrTLSConfig CertFile: ", c.cfg.PeerTLSConfig.CertFile)
+
 	c.cfg.PeerTLSConfig.KeyFile = viper.GetString("peer-tls-key-file")
+	c.cfg.PeerTLSConfig.KeyFile = peerKeyFile
 	log.Println("config file see PerrTLSConfig KeyFile: ", c.cfg.PeerTLSConfig.KeyFile)
+
 	c.cfg.PeerTLSConfig.CAFile = viper.GetString("peer-tls-ca-file")
+	c.cfg.PeerTLSConfig.CAFile = caFile
 	log.Println("config file see PerrTLSConfig CaFile: ", c.cfg.PeerTLSConfig.CAFile)
-	if c.cfg.ServerTLSConfig.CertFile != "" &&
-		c.cfg.ServerTLSConfig.KeyFile != "" {
-		c.cfg.ServerTLSConfig.Server = true
-		c.cfg.Config.ServerTLSConfig, err = config.SetupTLSConfig(
-			c.cfg.ServerTLSConfig,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	if c.cfg.PeerTLSConfig.CertFile != "" &&
-		c.cfg.PeerTLSConfig.KeyFile != "" {
-		c.cfg.PeerTLSConfig.Server = false
-		c.cfg.Config.PeerTLSConfig, err = config.SetupTLSConfig(
-			c.cfg.PeerTLSConfig,
-		)
-		if err != nil {
-			return err
-		}
-	}
+
+	c.cfg.Config.ServerTLSConfig, err = config.SetupTLSConfig(
+		c.cfg.ServerTLSConfig,
+	)
+
+	c.cfg.Config.PeerTLSConfig, err = config.SetupTLSConfig(
+		c.cfg.PeerTLSConfig,
+	)
+
+	// if c.cfg.ServerTLSConfig.CertFile != "" &&
+	// 	c.cfg.ServerTLSConfig.KeyFile != "" {
+	// 	c.cfg.ServerTLSConfig.Server = true
+	// 	c.cfg.Config.ServerTLSConfig, err = config.SetupTLSConfig(
+	// 		c.cfg.ServerTLSConfig,
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+	// if c.cfg.PeerTLSConfig.CertFile != "" &&
+	// 	c.cfg.PeerTLSConfig.KeyFile != "" {
+	// 	c.cfg.PeerTLSConfig.Server = false
+	// 	c.cfg.Config.PeerTLSConfig, err = config.SetupTLSConfig(
+	// 		c.cfg.PeerTLSConfig,
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	return nil
 }
 
