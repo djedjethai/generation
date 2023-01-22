@@ -44,7 +44,7 @@ COPY --from=builder /go/bin/grpc_health_probe /bin/grpc_health_probe
 # CMD ["/kvs", "-t", "true", "-m", "true", "-d", "true"]
 # CMD ["/kvs", "-t", "true", "-m", "true"]
 # CMD ["/kvs", "-t", "true"]
-CMD ["/kvs"]
+ENTRYPOINT ["/kvs"]
 
 
 
