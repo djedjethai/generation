@@ -17,9 +17,9 @@ func main() {
 	addr := flag.String("addr", ":8400", "service address")
 
 	clientTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
-		CertFile: config.ClientCertFile,
-		KeyFile:  config.ClientKeyFile,
-		CAFile:   config.CAFile,
+		CertFile: clientPem,
+		KeyFile:  clientKeyPem,
+		CAFile:   caPem,
 	})
 
 	clientCreds := credentials.NewTLS(clientTLSConfig)

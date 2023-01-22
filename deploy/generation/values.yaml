@@ -1,6 +1,6 @@
 image:
   repository: djedjethai/generation
-  tag: 0.0.11
+  tag: 0.0.12
   pullPolicy: IfNotPresent
 serfPort: 8401
 rpcPort: 8400
