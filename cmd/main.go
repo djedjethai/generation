@@ -126,36 +126,56 @@ func (c *cli) setupConfig(cmd *cobra.Command, args []string) error {
 	// c.cfg.ACLPolicyFile = viper.GetString("acl-policy-file")
 	c.cfg.ServerTLSConfig.CertFile = viper.GetString("server-tls-cert-file")
 	log.Println("config file see ServerTLSConfig CertFile: ", c.cfg.ServerTLSConfig.CertFile)
+	c.cfg.ServerTLSConfig.CertFile = serverPem
+
 	c.cfg.ServerTLSConfig.KeyFile = viper.GetString("server-tls-key-file")
 	log.Println("config file see ServerTLSConfig KeyFile: ", c.cfg.ServerTLSConfig.KeyFile)
+	c.cfg.ServerTLSConfig.KeyFile = serverKeyPem
+
 	c.cfg.ServerTLSConfig.CAFile = viper.GetString("server-tls-ca-file")
 	log.Println("config file see ServerTLSConfig CaFile: ", c.cfg.ServerTLSConfig.CAFile)
+	c.cfg.ServerTLSConfig.CAFile = caPem
+
 	c.cfg.PeerTLSConfig.CertFile = viper.GetString("peer-tls-cert-file")
 	log.Println("config file see PerrTLSConfig CertFile: ", c.cfg.PeerTLSConfig.CertFile)
+	c.cfg.PeerTLSConfig.CertFile = clientPem
+
 	c.cfg.PeerTLSConfig.KeyFile = viper.GetString("peer-tls-key-file")
 	log.Println("config file see PerrTLSConfig KeyFile: ", c.cfg.PeerTLSConfig.KeyFile)
+	c.cfg.PeerTLSConfig.KeyFile = clientKeyPem
+
 	c.cfg.PeerTLSConfig.CAFile = viper.GetString("peer-tls-ca-file")
 	log.Println("config file see PerrTLSConfig CaFile: ", c.cfg.PeerTLSConfig.CAFile)
-	if c.cfg.ServerTLSConfig.CertFile != "" &&
-		c.cfg.ServerTLSConfig.KeyFile != "" {
-		c.cfg.ServerTLSConfig.Server = true
-		c.cfg.Config.ServerTLSConfig, err = config.SetupTLSConfig(
-			c.cfg.ServerTLSConfig,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	if c.cfg.PeerTLSConfig.CertFile != "" &&
-		c.cfg.PeerTLSConfig.KeyFile != "" {
-		c.cfg.PeerTLSConfig.Server = false
-		c.cfg.Config.PeerTLSConfig, err = config.SetupTLSConfig(
-			c.cfg.PeerTLSConfig,
-		)
-		if err != nil {
-			return err
-		}
-	}
+	c.cfg.PeerTLSConfig.CAFile = caPem
+
+	c.cfg.Config.ServerTLSConfig, err = config.SetupTLSConfig(
+		c.cfg.ServerTLSConfig,
+	)
+
+	c.cfg.Config.PeerTLSConfig, err = config.SetupTLSConfig(
+		c.cfg.PeerTLSConfig,
+	)
+
+	// if c.cfg.ServerTLSConfig.CertFile != "" &&
+	// 	c.cfg.ServerTLSConfig.KeyFile != "" {
+	// 	c.cfg.ServerTLSConfig.Server = true
+	// 	c.cfg.Config.ServerTLSConfig, err = config.SetupTLSConfig(
+	// 		c.cfg.ServerTLSConfig,
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+	// if c.cfg.PeerTLSConfig.CertFile != "" &&
+	// 	c.cfg.PeerTLSConfig.KeyFile != "" {
+	// 	c.cfg.PeerTLSConfig.Server = false
+	// 	c.cfg.Config.PeerTLSConfig, err = config.SetupTLSConfig(
+	// 		c.cfg.PeerTLSConfig,
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	return nil
 }
 
