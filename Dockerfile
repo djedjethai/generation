@@ -19,6 +19,7 @@ RUN go get go.opentelemetry.io/otel/exporters/metric/prometheus@v0.15.0
 WORKDIR /app/bin
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o kvs ../cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o health_mybuild ../cmd/getservers
 RUN GRPC_HEALTH_PROBE_VERSION=v0.3.2 && \
   wget -qO/go/bin/grpc_health_probe \
   https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
@@ -35,6 +36,7 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.3.2 && \
 FROM alpine:latest
 
 COPY --from=builder /app/bin/kvs .
+COPY --from=builder /app/bin/health_mybuild .
 COPY --from=builder /go/bin/grpc_health_probe /bin/grpc_health_probe
 
 # for http
