@@ -2,129 +2,109 @@ version: '2'
 
 services:
   generation:
-    image: djedjethai/generation:0.0.1
-    # build:
-    #  context: .
+    # image: djedjethai/generation:0.0.20
+    build:
+     context: .
     restart: always
     ports:
       # - "1-65535:1-65535"
-      - "8080:8080"
+      # - "8080:8080"
       - "8400:8400"
-      - "8500"
-    healthcheck:
-      test:  ["CMD", "/bin/grpc_health_probe", "-addr=0.0.0.0:8500"]
-      interval: 20s
-      timeout: 10s
-      retries: 5
+      - "8401"
+        #healthcheck:
+        #  test:  ["CMD", "/bin/grpc_health_probe", "-addr=0.0.0.0:8500"]
+        #  interval: 20s
+        #  timeout: 10s
+        #  retries: 5
+        # network_mode: "host"
     environment:
-      PORT: "8080"
+      PORT: "3000" # for http only
       PROTOCOL: grpc
       APP_NAME: generation
       SERVICE_NAME: service0
-        # CONFIG_DIR: /config/.generation
+        # CONFIG_DIR: /config for what ??
     deploy:
       mode: replicated
       replicas: 1
     volumes:
       - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
-      - /home/jerome/Documents/projects/generationProject/generation/config:/config
+      - /home/jerome/Documents/projects/generationProject/generation/devConfig:/config
       - /home/jerome/Documents/projects/generationProject/generation/data:/data
     networks:
-      - mynet
+      vpcbr:
+        ipv4_address: 10.5.0.5  
 
-  generation1:
-    image: djedjethai/generation:0.0.1
-    restart: always
-    ports:
-      - "8081:8081"
-      - "8401:8401"
-      - "8501"
-    depends_on:
-      - generation
-    environment:
-      PORT: "8081"
-      PROTOCOL: grpc
-      APP_NAME: generation1
-      SERVICE_NAME: service1
-    deploy:
-      mode: replicated
-      replicas: 1
-    volumes:
-      - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
-      - /home/jerome/Documents/projects/generationProject/generation/config1:/config
-      - /home/jerome/Documents/projects/generationProject/generation/data1:/data1
-    networks:
-      - mynet
-
-  generation2:
-    image: djedjethai/generation:0.0.1
-    restart: always
-    ports:
-      - "8082:8082"
-      - "8402:8402"
-      - "8502"
-    depends_on:
-      - generation1
-    environment:
-      PORT: "8082"
-      PROTOCOL: grpc
-      APP_NAME: generation2
-      SERVICE_NAME: service2
-    deploy:
-      mode: replicated
-      replicas: 1
-    volumes:
-      - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
-      - /home/jerome/Documents/projects/generationProject/generation/config2:/config
-      - /home/jerome/Documents/projects/generationProject/generation/data2:/data2
-    networks:
-      - mynet
-
-  postgres:
-    image: 'postgres:14.2'
-    ports:
-      - "5432:5432"
-    deploy:
-      mode: replicated
-      replicas: 1
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: transactions
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d transactions -U postgres"]
-      interval: 30s
-      timeout: 60s
-      retries: 5
-      start_period: 80s
-    volumes:
-      - ./db-data/postgres/:/var/lib/postgresql/data/
-    networks:
-      - mynet
-  
-  prometheus:
-    image: 'prom/prometheus:v2.23.0'
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - mynet
-  
-  jaeger:
-    image: jaegertracing/all-in-one:1.21
-    restart: always
-    ports:
-      - "5775:5775/udp"
-      - "6831:6831/udp"
-      - "6832:6832/udp"
-      - "5778:5778"
-      - "16686:16686"
-      - "14268:14268"
-      - "14250:14250"
-      - "9411:9411"        
-    networks:
-      - mynet
-       
 networks:
-  mynet:
+  vpcbr:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
+         gateway: 10.5.0.1
+
+
+        #     networks:
+        #       - mynet
+        # 
+        # networks:
+        #   mynet:
+
+
+
+        #postgres:
+        #  image: 'postgres:14.2'
+        #  ports:
+        #    - "5432:5432"
+        #  deploy:
+        #    mode: replicated
+        #    replicas: 1
+        #  environment:
+        #    POSTGRES_USER: postgres
+        #    POSTGRES_PASSWORD: password
+        #    POSTGRES_DB: transactions
+        #  healthcheck:
+        #    test: ["CMD-SHELL", "pg_isready -d transactions -U postgres"]
+        #    interval: 30s
+        #    timeout: 60s
+        #    retries: 5
+        #    start_period: 80s
+        #  volumes:
+        #    - ./db-data/postgres/:/var/lib/postgresql/data/
+        #  networks:
+        #    - mynet
+        #
+        #prometheus:
+        #  image: 'prom/prometheus:v2.23.0'
+        #  ports:
+        #    - "9090:9090"
+        #  volumes:
+        #    - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        #  networks:
+        #    - mynet
+        #
+        #jaeger:
+        #  image: jaegertracing/all-in-one:1.21
+        #  restart: always
+        #  ports:
+        #    - "5775:5775/udp"
+        #    - "6831:6831/udp"
+        #    - "6832:6832/udp"
+        #    - "5778:5778"
+        #    - "16686:16686"
+        #    - "14268:14268"
+        #    - "14250:14250"
+        #    - "9411:9411"        
+        #  networks:
+        #    - mynet
+       
+
+
+
+
+
+
+
+
+
+
+
