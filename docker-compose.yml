@@ -16,7 +16,6 @@ services:
         #  interval: 20s
         #  timeout: 10s
         #  retries: 5
-        # network_mode: "host"
     environment:
       PORT: "3000" # for http only
       PROTOCOL: grpc
@@ -31,23 +30,28 @@ services:
       - /home/jerome/Documents/projects/generationProject/generation/devConfig:/config
       - /home/jerome/Documents/projects/generationProject/generation/data:/data
     networks:
-      vpcbr:
-        ipv4_address: 10.5.0.5  
+      - host
 
 networks:
-  vpcbr:
-    driver: bridge
-    ipam:
-     config:
-       - subnet: 10.5.0.0/16
-         gateway: 10.5.0.1
+  host:
+    name: host
+    external: true
 
 
-        #     networks:
-        #       - mynet
-        # 
-        # networks:
-        #   mynet:
+
+
+        #    networks:
+        #      vpcbr:
+        #        ipv4_address: 10.5.0.5  
+        #
+        #networks:
+        #  vpcbr:
+        #    driver: bridge
+        #    ipam:
+        #     config:
+        #       - subnet: 10.5.0.0/16
+        #         gateway: 10.5.0.1
+
 
 
 
