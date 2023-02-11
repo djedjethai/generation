@@ -94,7 +94,10 @@ func setupFlags(cmd *cobra.Command) error {
 func (c *cli) setupConfig(cmd *cobra.Command, args []string) error {
 	var err error
 	configFile, err := cmd.Flags().GetString("config-file")
-	configFile = "/data/config.yaml"
+	// TODO just for docker-compose user
+	configFile = os.Getenv("CONFIG_FILE")
+	log.Println("the config file: ", configFile)
+	// configFile = "/data/config.yaml"
 	if err != nil {
 		return err
 	}
