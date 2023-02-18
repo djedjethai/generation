@@ -2,7 +2,9 @@ version: '2'
 
 services:
   generation0:
-    image: djedjethai/generation-compose:0.0.1
+    build:
+      context: .
+    # image: djedjethai/generation-compose:0.0.1
     restart: always
     ports:
       #  #  - "8080:8080"
@@ -16,35 +18,35 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+    container_name: generation
     volumes:
       # - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
       - /home/jerome/Documents/projects/generationProject/generation/devConfig:/config
       - /home/jerome/Documents/projects/generationProject/generation/data:/data
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
+    networks:
+      - my-network
   
-  generation1:
-    image: djedjethai/generation-compose:0.0.1
-    restart: always
-    ports:
-      #  #  - "8080:8080"
-      - "8401:8400"
-    environment:
-      PORT: "3000" # for http only
-      PROTOCOL: grpc
-      APP_NAME: generation
-      SERVICE_NAME: service0
-      CONFIG_FILE: /config/config.yaml 
-    deploy:
-      mode: replicated
-      replicas: 1
-    volumes:
-      # - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
-      - /home/jerome/Documents/projects/generationProject/generation/devConfig0:/config
-      - /home/jerome/Documents/projects/generationProject/generation/data0:/data
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+        # generation1:
+        #   image: djedjethai/generation-compose:0.0.1
+        #   restart: always
+        #   ports:
+        #     #  #  - "8080:8080"
+        #     - "8401:8400"
+        #   environment:
+        #     PORT: "3000" # for http only
+        #     PROTOCOL: grpc
+        #     APP_NAME: generation
+        #     SERVICE_NAME: service0
+        #     CONFIG_FILE: /config/config.yaml 
+        #   deploy:
+        #     mode: replicated
+        #     replicas: 1
+        #   volumes:
+        #     # - /home/jerome/Documents/projects/generationProject/generation/.generation:/config/.generation
+        #     - /home/jerome/Documents/projects/generationProject/generation/devConfig0:/config
+        #     - /home/jerome/Documents/projects/generationProject/generation/data0:/data
+        #   extra_hosts:
+        #     - "host.docker.internal:host-gateway"
 
   client:
     #image: djedjethai/generation-docker-client:0.0.1
@@ -55,9 +57,12 @@ services:
       - "3000:3000"
     volumes:
       - /home/jerome/Documents/projects/generationProject/clientGenerationServ/.generation:/.generation
-      #  - "8400:8400"
-    
+    networks:
+      - my-network
 
+networks:
+  my-network:
+    driver: bridge
 
 
 # version: '2'

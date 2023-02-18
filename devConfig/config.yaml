@@ -1,6 +1,6 @@
 data-dir: /home/jerome/Documents/projects/generationProject/generation/data
 rpc-port: 8400
-bind-addr: 127.0.0.1:8401
+bind-addr: 0.0.0.0:8401
   # bind-addr: 10.5.0.5:8401
 bootstrap: true
   # server-tls-cert-file: /home/jerome/Documents/projects/generationProject/generation/.generation/server.pem

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"sync"
@@ -129,6 +130,7 @@ func (a *Agent) setupMux() error {
 		addr.IP.String(),
 		a.config.PortGRPC,
 	)
+	log.Println("The tcp address used by the mux in setupMux(): ", rpcAddr)
 	ln, err := net.Listen("tcp", rpcAddr)
 	if err != nil {
 		return err
@@ -163,6 +165,7 @@ func (a *Agent) setupStorage(shards, itemsPerShard int) error {
 		if err != nil {
 			return err
 		}
+		log.Println("Raft is bind at the address: ", rpcAddr)
 		logConfig.Raft.BindAddr = rpcAddr
 		logConfig.Raft.LocalID = raft.ServerID(a.config.NodeName)
 		logConfig.Raft.Bootstrap = a.config.Bootstrap
