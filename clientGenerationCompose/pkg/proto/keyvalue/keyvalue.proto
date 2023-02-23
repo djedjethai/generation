@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+option go_package = "github.com/djedjethai/generation/api/v1/keyvalue";
+
+
+service KeyValue {
+	rpc Get(GetRequest) returns (GetResponse);
+	rpc Put(PutRequest) returns (PutResponse);
+	rpc Delete(DeleteRequest) returns (DeleteResponse);
+	rpc GetKeys(GetKeysRequest) returns (GetKeysResponse);
+	rpc GetKeysValuesStream(Empty) returns (stream GetRecords);
+}
+
+message Empty {}
+
+message Records {
+	string key = 1;
+	string value = 2;
+}
+
+message GetRecords{
+	Records records =1;
+}
+
+message GetRequest {
+	string key = 1;
+}
+
+message GetResponse{
+	string value = 1;
+}
+
+message GetKeysRequest{}
+
+message GetKeysResponse{
+	repeated string keys =1;
+}
+
+message PutRequest{
+	Records records = 1;
+}
+
+message PutResponse{}
+
+message DeleteRequest{
+	string key = 1;
+}
+
+message DeleteResponse{}
+
+
+
+
+// syntax = "proto3";
+// 
+// option go_package = "github.com/djedjethai/clientGeneration0/pkg/proto/keyvalue";
+// 
+// service KeyValue {
+// 	rpc Get(GetRequest) returns (GetResponse);
+// 	rpc Put(PutRequest) returns (PutResponse);
+// 	rpc Delete(DeleteRequest) returns (DeleteResponse);
+// 	rpc GetKeys(GetKeysRequest) returns (GetKeysResponse);
+// }
+// 
+// message GetRequest {
+// 	string key = 1;
+// }
+// 
+// message GetResponse{
+// 	string value = 1;
+// }
+// 
+// message GetKeysRequest{}
+// 
+// message GetKeysResponse{
+// 	repeated string keys =1;
+// }
+// 
+// message PutRequest{
+// 	string key = 1;
+// 	string value = 2;
+// }
+// 
+// message PutResponse{}
+// 
+// message DeleteRequest{
+// 	string key = 1;
+// }
+// 
+// message DeleteResponse{}
+// 

@@ -51,7 +51,7 @@ services:
   client:
     #image: djedjethai/generation-docker-client:0.0.1
     build:
-      context: ./clientGenerationServ 
+      context: ./clientGenerationCompose 
     restart: always
     ports:
       - "3000:3000"
